@@ -43,9 +43,5 @@
     "vfonts": "^0.0.3",
     "vite": "7.2.4"
   },
-  "keywords": [
-    "AI赋能股票分析",
-    "go-stock"
-  ],
-  "author": "spark"
+  "keywords": []
 }

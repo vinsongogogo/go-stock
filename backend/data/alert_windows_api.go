@@ -9,7 +9,7 @@ import (
 	"github.com/go-toast/toast"
 )
 
-// AlertWindowsApi @Author spark
+// AlertWindowsApi
 // @Date 2025/1/8 9:40
 // @Desc
 // -----------------------------------------------------------------------------------

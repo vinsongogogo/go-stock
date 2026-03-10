@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-// AlertWindowsApi @Author 2lovecode
+// AlertDarwinApi
 // @Date 2025/02/06 17:50
 // @Desc
 // -----------------------------------------------------------------------------------

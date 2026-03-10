@@ -1,10 +1,5 @@
 package main
 
-// @Author spark
-// @Date 2025/7/8 18:51
-// @Desc
-//-----------------------------------------------------------------------------------
-
 import "runtime"
 
 // IsWindows 判断是否为 Windows 系统

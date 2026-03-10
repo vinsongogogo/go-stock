@@ -17,7 +17,7 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-// GetStockAiAgent @Author spark
+// GetStockAiAgent
 // @Date 2025/8/4 16:17
 // @Desc
 // -----------------------------------------------------------------------------------

@@ -37,7 +37,7 @@ import SelectStock from "./SelectStock.vue";
 import Stockhotmap from "./stockhotmap.vue";
 
 const route = useRoute()
-const icon = ref('https://raw.githubusercontent.com/ArvinLovegood/go-stock/master/build/appicon.png');
+const icon = ref('');
 
 const message = useMessage()
 const notify = useNotification()

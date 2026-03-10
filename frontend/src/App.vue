@@ -47,7 +47,7 @@ const contentStyle = ref("")
 const enableFund = ref(false)
 const enableAgent = ref(false)
 const enableDarkTheme = ref(null)
-const content = ref('未经授权,禁止商业目的!\n\n数据来源于网络,仅供参考;投资有风险,入市需谨慎')
+const content = ref('')
 const isFullscreen = ref(false)
 const activeKey = ref('stock')
 const containerRef = ref({})
@@ -740,7 +740,6 @@ window.onerror = function (msg, source, lineno, colno, error) {
 onBeforeMount(() => {
   GetVersionInfo().then(result => {
     if(result.officialStatement){
-      content.value = result.officialStatement+"\n\n"+content.value
       officialStatement.value = result.officialStatement
     }
   })
@@ -812,7 +811,7 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-  WindowSetTitle("go-stock：AI赋能股票分析✨ "+officialStatement.value+"  未经授权,禁止商业目的！ [数据来源于网络,仅供参考;投资有风险,入市需谨慎]")
+  WindowSetTitle("行情中心")
   contentStyle.value = "max-height: calc(92vh);overflow: hidden"
   GetConfig().then((res) => {
     if (res.enableNews) {
@@ -849,7 +848,7 @@ onMounted(() => {
           content: () => h('div',{type:"info",style:{
             "text-align":"left",
               "font-size":"14px",
-              "color": data.source==="go-stock"?"#F98C24":"#549EC8"
+              "color":"#549EC8"
             }}, { default: () => data.content }),
           meta: () => h(NText,{type:"warning"}, { default: () => data.source}),
           duration:1000*30 ,
@@ -865,51 +864,42 @@ onMounted(() => {
       <n-notification-provider>
         <n-modal-provider>
           <n-dialog-provider>
-            <n-watermark
-                :content="''"
-                cross
-                selectable
-                :font-size="16"
-                :line-height="16"
-                :width="500"
-                :height="400"
-                :x-offset="50"
-                :y-offset="150"
-                :rotate="-15"
-            >
-              <FloatingAiAssistant />
-              <n-flex>
-                <n-grid x-gap="12" :cols="1">
-                  <n-gi>
-                    <n-spin :show="loading">
-                      <template #description>
-                        {{ loadingMsg }}
-                      </template>
-                      <n-marquee :speed="100" style="position: relative;top:0;z-index: 19;width: 100%"
-                                 v-if="(telegraph.length>0)&&(enableNews)">
-                        <n-tag type="warning" v-for="item in telegraph" style="margin-right: 10px">
-                          {{ item }}
-                        </n-tag>
-                      </n-marquee>
-                      <n-scrollbar :style="contentStyle">
-                        <n-skeleton v-if="loading" height="calc(100vh)" />
-                        <RouterView/>
-                      </n-scrollbar>
-                    </n-spin>
-                  </n-gi>
-                  <n-gi style="position: fixed;bottom:0;z-index: 9;width: 100%;">
-                    <n-card size="small" style="--wails-draggable:no-drag">
-                      <n-menu style="font-size: 18px;"
-                              v-model:value="activeKey"
-                              mode="horizontal"
-                              :options="menuOptions"
-                              responsive
-                      />
-                    </n-card>
-                  </n-gi>
-                </n-grid>
-              </n-flex>
-            </n-watermark>
+            <FloatingAiAssistant />
+            <n-layout has-sider style="min-height: 100vh">
+              <n-layout-sider
+                bordered
+                collapse-mode="width"
+                :collapsed-width="64"
+                :width="220"
+                content-style="padding: 16px 0; background: var(--sidebar-bg, #1e293b);"
+                :native-scrollbar="false"
+                style="--wails-draggable: drag"
+              >
+                <n-menu
+                  v-model:value="activeKey"
+                  :options="menuOptions"
+                  mode="vertical"
+                  style="font-size: 14px; --n-item-color: #e2e8f0; --n-item-color-hover: #f8fafc; --n-item-color-active: #f8fafc; background: transparent;"
+                />
+              </n-layout-sider>
+              <n-layout-content content-style="padding: 0; background: var(--content-bg, #fff);" :native-scrollbar="false">
+                <n-spin :show="loading" style="min-height: 100vh">
+                  <template #description>
+                    {{ loadingMsg }}
+                  </template>
+                  <n-marquee :speed="100" style="position: relative; top: 0; z-index: 19; width: 100%; padding: 8px 0;"
+                             v-if="(telegraph.length>0)&&(enableNews)">
+                    <n-tag type="warning" v-for="item in telegraph" style="margin-right: 10px">
+                      {{ item }}
+                    </n-tag>
+                  </n-marquee>
+                  <n-scrollbar :style="contentStyle + '; height: calc(100vh)'">
+                    <n-skeleton v-if="loading" height="calc(100vh)" />
+                    <RouterView/>
+                  </n-scrollbar>
+                </n-spin>
+              </n-layout-content>
+            </n-layout>
           </n-dialog-provider>
         </n-modal-provider>
       </n-notification-provider>

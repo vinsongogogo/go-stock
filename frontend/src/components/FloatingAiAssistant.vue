@@ -5,7 +5,7 @@
       v-if="showButton"
       :class="['edge-trigger', { 'edge-trigger-busy': hasBackgroundTask }]"
       @click="togglePanel"
-      :title="hasBackgroundTask ? 'go-stock AI 助手正在后台分析...' : 'go-stock AI 助手'"
+      :title="hasBackgroundTask ? 'AI 助手正在后台分析...' : 'AI 助手'"
     >
       <div class="edge-trigger-inner">
         <NIcon :component="ChatbubbleEllipsesOutline" size="22" />
@@ -27,7 +27,7 @@
         >
           <template #header>
             <div class="panel-header">
-              <span class="panel-title">go-stock AI 助手</span>
+              <span class="panel-title">AI 助手</span>
               <div class="panel-actions">
                 <NButton quaternary circle size="small" title="分享到社区" :loading="shareLoading" @click="shareAiToCommunity">
                   <template #icon>
@@ -451,7 +451,7 @@ function openPanel() {
     messages.value = [
       {
         role: 'assistant',
-        content: '我是 go-stock AI 助手，可随时在这里提问。支持股票、市场、投资等相关问题。',
+        content: '我是 AI 助手，可随时在这里提问。支持股票、市场、投资等相关问题。',
         reasoning: ''
       }
     ]
@@ -483,7 +483,7 @@ async function togglePanel() {
     ensureSummaryEvent()
     await ensureVipInfo()
     if ((vipLevel.value ?? 0) < 2) {
-      message.warning('go-stock AI 助手功能仅对 VIP2 及以上赞助用户开放，请前往关于页面查看赞助方式。')
+      message.warning('AI 助手功能仅对 VIP2 及以上赞助用户开放，请前往关于页面查看。')
       return
     }
     openPanel()

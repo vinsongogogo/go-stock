@@ -9,7 +9,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// @Author spark
 // @Date 2025/6/8 20:45
 // @Desc
 //-----------------------------------------------------------------------------------
