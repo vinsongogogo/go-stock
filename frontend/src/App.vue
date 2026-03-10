@@ -871,7 +871,8 @@ onMounted(() => {
                 collapse-mode="width"
                 :collapsed-width="64"
                 :width="220"
-                content-style="padding: 16px 0; background: var(--sidebar-bg, #1e293b);"
+                class="app-sidebar"
+                content-style="padding: 16px 0; background: var(--sidebar-bg);"
                 :native-scrollbar="false"
                 style="--wails-draggable: drag"
               >
@@ -879,7 +880,7 @@ onMounted(() => {
                   v-model:value="activeKey"
                   :options="menuOptions"
                   mode="vertical"
-                  style="font-size: 14px; --n-item-color: #e2e8f0; --n-item-color-hover: #f8fafc; --n-item-color-active: #f8fafc; background: transparent;"
+                  class="app-sidebar-menu"
                 />
               </n-layout-sider>
               <n-layout-content content-style="padding: 0; background: var(--content-bg, #fff);" :native-scrollbar="false">
@@ -906,6 +907,44 @@ onMounted(() => {
     </n-message-provider>
   </n-config-provider>
 </template>
-<style>
-
+<style scoped>
+/* 左侧菜单栏：固定深色背景与浅色文字，避免暗色主题下黑底黑字 */
+.app-sidebar {
+  --sidebar-bg: #1e293b;
+}
+.app-sidebar :deep(.n-layout-sider-scroll-content) {
+  background: var(--sidebar-bg) !important;
+}
+.app-sidebar-menu {
+  font-size: 14px;
+  background: transparent !important;
+  --n-item-color: #e2e8f0;
+  --n-item-color-hover: #f1f5f9;
+  --n-item-color-active: #ffffff;
+  --n-item-text-color: #e2e8f0;
+  --n-item-text-color-hover: #f1f5f9;
+  --n-item-text-color-active: #ffffff;
+  --n-item-icon-color: #94a3b8;
+  --n-item-icon-color-hover: #cbd5e1;
+  --n-item-icon-color-active: #ffffff;
+  --n-item-color-hover-overlay: rgba(248, 250, 252, 0.08);
+  --n-item-color-active-overlay: rgba(248, 250, 252, 0.15);
+}
+.app-sidebar-menu :deep(.n-menu-item-content),
+.app-sidebar-menu :deep(.n-menu-item-content::before) {
+  color: #e2e8f0;
+}
+.app-sidebar-menu :deep(.n-menu-item-content:hover),
+.app-sidebar-menu :deep(.n-menu-item-content:hover .n-icon) {
+  color: #f1f5f9 !important;
+}
+.app-sidebar-menu :deep(.n-menu-item-content.n-menu-item-content--selected) {
+  color: #ffffff !important;
+}
+.app-sidebar-menu :deep(.n-menu-item-content.n-menu-item-content--selected .n-icon) {
+  color: #ffffff !important;
+}
+.app-sidebar-menu :deep(.n-icon) {
+  color: #94a3b8;
+}
 </style>
