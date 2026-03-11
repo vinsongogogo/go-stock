@@ -1,9 +1,9 @@
 :root {
   --app-bg: #f5f6f8;
-  /* 左侧菜单：深灰蓝背景，避免纯黑，保证与浅色文字对比度 */
-  --sidebar-bg: #1e293b;
-  --sidebar-text: #e2e8f0;
-  --sidebar-hover: #334155;
+  /* 左侧菜单：浅灰蓝背景，更清晰易读 */
+  --sidebar-bg: #f1f5f9;
+  --sidebar-text: #334155;
+  --sidebar-hover: #e2e8f0;
   --content-bg: #ffffff;
   --border-color: #e2e8f0;
 }
@@ -25,26 +25,26 @@ body {
   text-align: left;
 }
 
-/* 左侧菜单栏：始终使用深灰蓝背景 + 浅色文字，避免暗色主题下黑底字看不清 */
+/* 左侧菜单栏：浅色背景 + 深色文字，更清晰 */
 .n-layout-sider.app-sidebar,
 .n-layout-sider.app-sidebar .n-layout-sider-scroll-content {
-  background: #1e293b !important;
+  background: #f1f5f9 !important;
 }
 .n-layout-sider.app-sidebar .n-menu .n-menu-item-content,
 .n-layout-sider.app-sidebar .n-menu .n-menu-item-content .n-menu-item-content-header {
-  color: #e2e8f0 !important;
+  color: #334155 !important;
 }
 .n-layout-sider.app-sidebar .n-menu .n-menu-item-content:hover,
 .n-layout-sider.app-sidebar .n-menu .n-menu-item-content:hover .n-icon {
-  color: #f1f5f9 !important;
+  color: #1e293b !important;
 }
 .n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected,
 .n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected .n-icon {
-  color: #ffffff !important;
+  color: #0f172a !important;
 }
 .n-layout-sider.app-sidebar .n-menu .n-icon {
-  color: #94a3b8 !important;
+  color: #64748b !important;
 }
 .n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected .n-icon {
-  color: #ffffff !important;
+  color: #0f172a !important;
 }

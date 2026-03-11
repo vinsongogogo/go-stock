@@ -78,8 +78,8 @@ func (a *App) startup(ctx context.Context) {
 
 func OnSecondInstanceLaunch(secondInstanceData options.SecondInstanceData) {
 	notification := toast.Notification{
-		AppID:    "go-stock",
-		Title:    "go-stock",
+		AppID:    "大聪明",
+		Title:    "大聪明",
 		Message:  "程序已经在运行了",
 		Icon:     "",
 		Duration: "short",
@@ -127,7 +127,7 @@ func MonitorStockPrices(a *App) {
 
 	}
 	if total != 0 {
-		title := "go-stock " + time.Now().Format(time.DateTime) + fmt.Sprintf("  %.2f¥", total)
+		title := "大聪明 " + time.Now().Format(time.DateTime) + fmt.Sprintf("  %.2f¥", total)
 		systray.SetTooltip(title)
 	}
 
@@ -141,8 +141,8 @@ func onReady(a *App) {
 	// 初始化操作
 	logger.SugaredLogger.Infof("systray onReady")
 	systray.SetIcon(icon2)
-	systray.SetTitle("go-stock")
-	systray.SetTooltip("go-stock 股票行情实时获取")
+	systray.SetTitle("大聪明")
+	systray.SetTooltip("大聪明 股票行情实时获取")
 	// 创建菜单项
 	show := systray.AddMenuItem("显示", "显示应用程序")
 	show.Click(func() {
@@ -182,7 +182,7 @@ func (a *App) beforeClose(ctx context.Context) (prevent bool) {
 
 	dialog, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
 		Type:         runtime.QuestionDialog,
-		Title:        "go-stock",
+		Title:        "大聪明",
 		Message:      "确定关闭吗？",
 		Buttons:      []string{"确定"},
 		Icon:         icon,

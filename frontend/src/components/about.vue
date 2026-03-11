@@ -3,8 +3,9 @@ import 'md-editor-v3/lib/preview.css';
 import {h, onBeforeUnmount, onMounted, ref} from 'vue';
 import {CheckUpdate, GetVersionInfo, GetSponsorInfo, OpenURL} from "../../wailsjs/go/main/App";
 import {EventsOff, EventsOn, Environment} from "../../wailsjs/runtime";
-import {NAvatar, NButton, useNotification, NText} from "naive-ui";
+import {NAvatar, NButton, NIcon, useNotification, NText} from "naive-ui";
 import { format } from 'date-fns';
+import { BarChartSharp } from '@vicons/ionicons5';
 
 const updateLog = ref('');
 const versionInfo = ref('');
@@ -77,34 +78,22 @@ EventsOn("updateVersion", async (msg) => {
     <n-card size="large">
       <n-divider title-placement="center">关于</n-divider>
       <n-space vertical>
-        <n-image v-if="icon" width="100" :src="icon" />
         <h1>
           <n-badge v-if="!vipLevel" :value="versionInfo" :offset="[80,10]" type="success">
-            <n-gradient-text type="info" :size="50">行情中心</n-gradient-text>
+            <n-gradient-text type="info" :size="50">大聪明</n-gradient-text>
           </n-badge>
           <n-badge v-if="vipLevel" :value="versionInfo" :offset="[70,10]" type="success">
-            <n-gradient-text :type="expired?'error':'warning'" :size="50">行情中心</n-gradient-text>
+            <n-gradient-text :type="expired?'error':'warning'" :size="50">大聪明</n-gradient-text>
             <n-tag v-if="vipLevel" :bordered="false" size="small" type="warning">VIP{{ vipLevel }}</n-tag>
           </n-badge>
         </h1>
         <n-gradient-text v-if="vipLevel" :type="expired?'error':'warning'">VIP 到期时间：{{ vipEndTime }}</n-gradient-text>
         <n-button size="tiny" @click="CheckUpdate(1)" type="info" tertiary>检查更新</n-button>
         <div style="justify-self: center; text-align: left">
-          <p>自选股行情与市场数据查看工具。</p>
+          <p>让 AI 帮你选股盯盘，用数据赢在每一次交易</p>
           <p v-if="updateLog">更新说明：{{ updateLog }}</p>
         </div>
       </n-space>
-      <n-divider title-placement="center">鸣谢</n-divider>
-      <div style="justify-self: center; text-align: left">
-        <p>
-          感谢以下开源项目：
-          <a href="https://github.com/wailsapp/wails" target="_blank">Wails</a>
-          <n-divider vertical />
-          <a href="https://github.com/vuejs/core" target="_blank">Vue</a>
-          <n-divider vertical />
-          <a href="https://github.com/tusen-ai/naive-ui" target="_blank">NaiveUI</a>
-        </p>
-      </div>
     </n-card>
   </n-space>
 </template>

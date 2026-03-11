@@ -1,6 +1,6 @@
 {
-  "name": "go-stock",
-  "outputfilename": "go-stock",
+  "name": "大聪明",
+  "outputfilename": "大聪明",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
@@ -11,7 +11,7 @@
   },
   "info": {
     "companyName": "",
-    "productName": "行情中心",
+    "productName": "大聪明",
     "productVersion": "1.0.0",
     "copyright": "",
     "comments": ""

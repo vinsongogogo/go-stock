@@ -136,7 +136,7 @@ func main() {
 
 	// Create application with options
 	err = wails.Run(&options.App{
-		Title:     "go-stock：AI赋能股票分析✨ " + OFFICIAL_STATEMENT,
+		Title:     "大聪明：AI赋能股票分析✨ " + OFFICIAL_STATEMENT,
 		Width:     width * 4 / 5,
 		Height:    920,
 		MinWidth:  minWidth,
@@ -161,7 +161,7 @@ func main() {
 		OnShutdown:               app.shutdown,
 		WindowStartState:         options.Normal,
 		SingleInstanceLock: &options.SingleInstanceLock{
-			UniqueId:               "go-stock",
+			UniqueId:               "大聪明",
 			OnSecondInstanceLaunch: OnSecondInstanceLaunch,
 		},
 		Bind: []interface{}{
@@ -188,8 +188,8 @@ func main() {
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{
-				Title:   "go-stock",
-				Message: "go-stock：AI赋能股票分析✨ ",
+				Title:   "大聪明",
+				Message: "大聪明：AI赋能股票分析✨ ",
 				Icon:    icon,
 			},
 		},

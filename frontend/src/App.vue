@@ -811,7 +811,7 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-  WindowSetTitle("行情中心")
+  WindowSetTitle("大聪明")
   contentStyle.value = "max-height: calc(92vh);overflow: hidden"
   GetConfig().then((res) => {
     if (res.enableNews) {
@@ -908,9 +908,9 @@ onMounted(() => {
   </n-config-provider>
 </template>
 <style scoped>
-/* 左侧菜单栏：固定深色背景与浅色文字，避免暗色主题下黑底黑字 */
+/* 左侧菜单栏：浅色背景，更清晰 */
 .app-sidebar {
-  --sidebar-bg: #1e293b;
+  --sidebar-bg: #f1f5f9;
 }
 .app-sidebar :deep(.n-layout-sider-scroll-content) {
   background: var(--sidebar-bg) !important;
@@ -918,33 +918,33 @@ onMounted(() => {
 .app-sidebar-menu {
   font-size: 14px;
   background: transparent !important;
-  --n-item-color: #e2e8f0;
-  --n-item-color-hover: #f1f5f9;
-  --n-item-color-active: #ffffff;
-  --n-item-text-color: #e2e8f0;
-  --n-item-text-color-hover: #f1f5f9;
-  --n-item-text-color-active: #ffffff;
-  --n-item-icon-color: #94a3b8;
-  --n-item-icon-color-hover: #cbd5e1;
-  --n-item-icon-color-active: #ffffff;
-  --n-item-color-hover-overlay: rgba(248, 250, 252, 0.08);
-  --n-item-color-active-overlay: rgba(248, 250, 252, 0.15);
+  --n-item-color: #334155;
+  --n-item-color-hover: #1e293b;
+  --n-item-color-active: #0f172a;
+  --n-item-text-color: #334155;
+  --n-item-text-color-hover: #1e293b;
+  --n-item-text-color-active: #0f172a;
+  --n-item-icon-color: #64748b;
+  --n-item-icon-color-hover: #475569;
+  --n-item-icon-color-active: #0f172a;
+  --n-item-color-hover-overlay: rgba(0, 0, 0, 0.04);
+  --n-item-color-active-overlay: rgba(0, 0, 0, 0.08);
 }
 .app-sidebar-menu :deep(.n-menu-item-content),
 .app-sidebar-menu :deep(.n-menu-item-content::before) {
-  color: #e2e8f0;
+  color: #334155;
 }
 .app-sidebar-menu :deep(.n-menu-item-content:hover),
 .app-sidebar-menu :deep(.n-menu-item-content:hover .n-icon) {
-  color: #f1f5f9 !important;
+  color: #1e293b !important;
 }
 .app-sidebar-menu :deep(.n-menu-item-content.n-menu-item-content--selected) {
-  color: #ffffff !important;
+  color: #0f172a !important;
 }
 .app-sidebar-menu :deep(.n-menu-item-content.n-menu-item-content--selected .n-icon) {
-  color: #ffffff !important;
+  color: #0f172a !important;
 }
 .app-sidebar-menu :deep(.n-icon) {
-  color: #94a3b8;
+  color: #64748b;
 }
 </style>
