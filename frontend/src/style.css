@@ -1,50 +1,453 @@
+/* ========== 深色主题变量（与 table-reference-style 子页面/表格风格对齐） ========== */
 :root {
-  --app-bg: #f5f6f8;
-  /* 左侧菜单：浅灰蓝背景，更清晰易读 */
-  --sidebar-bg: #f1f5f9;
-  --sidebar-text: #334155;
-  --sidebar-hover: #e2e8f0;
-  --content-bg: #ffffff;
-  --border-color: #e2e8f0;
+  --app-bg: #0f172a;
+  --app-bg-gradient: linear-gradient(to bottom right, #020617, #172554, #0f172a);
+  --app-min-width: 1024px;
+  /* 子页面与表格参考 table-reference-style */
+  --page-bg: #0a0e1a;
+  --card-bg: #0d1117;
+  --table-header-bg: #161b22;
+  --table-border: #1f2937;
+  --sidebar-bg: rgba(15, 23, 42, 0.5);
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --content-bg: #0a0e1a;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --accent-cyan: #22d3ee;
+  --accent-cyan-dim: rgba(34, 211, 238, 0.3);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #9ca3af;
+  --up: #22c55e;
+  --down: #ef4444;
+  --blur-size: 80px;
 }
 
 html {
   text-align: left;
+  width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  width: 100%;
+  min-width: 0;
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--app-bg);
-  color: #1e293b;
+  color: var(--text-primary);
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 #app {
   height: 100vh;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+/* ========== 主框架：根容器与背景光斑 ========== */
+.app-root {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  min-width: var(--app-min-width);
+  max-width: 100vw;
+  background: var(--app-bg-gradient);
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+}
+
+.app-bg-blurs {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-blur {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(var(--blur-size));
+}
+
+.app-blur--blue {
+  top: 0;
+  left: -1rem;
+  width: 24rem;
+  height: 24rem;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.app-blur--purple {
+  top: 50%;
+  right: 0;
+  width: 24rem;
+  height: 24rem;
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.app-blur--cyan {
+  bottom: 0;
+  left: 33%;
+  width: 24rem;
+  height: 24rem;
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.app-main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  min-width: var(--app-min-width);
+  max-width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--content-bg);
+}
+
+.app-view {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 1.5rem;
+  background: var(--page-bg);
+}
+
+/* ========== 毛玻璃卡片（子页面统一） ========== */
+.card-glass {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.2s;
+}
+
+.card-glass:hover {
+  border-color: var(--accent-cyan-dim);
+}
+
+/* ========== 侧栏：深色毛玻璃 ========== */
+.app-sidebar {
+  background: var(--sidebar-bg) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--sidebar-border) !important;
+}
+
+.app-sidebar .n-layout-sider-scroll-content {
+  background: transparent !important;
+}
+
+.app-sidebar-menu {
+  font-size: 16px;
+  background: transparent !important;
+  /* --n-item-color: transparent; */
+  --n-item-text-color: white;
+  --n-item-text-color-hover: var(--text-primary);
+  --n-item-text-color-active: var(--text-primary);
+  --n-item-icon-color: white;
+  --n-item-icon-color-hover: var(--text-primary);
+  --n-item-icon-color-active: var(--text-primary);
+}
+
+.app-sidebar-menu .n-menu-item-content,
+.app-sidebar-menu .n-menu-item-content::before {
+  color: white;
+}
+
+.app-sidebar-menu .n-menu-item-content:hover,
+.app-sidebar-menu .n-menu-item-content:hover::before {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+.app-sidebar-menu .n-menu-item-content:hover .n-icon {
+  color: var(--text-primary) !important;
+}
+
+.app-sidebar-menu .n-menu-item-content.n-menu-item-content--selected,
+.app-sidebar-menu .n-menu-item-content.n-menu-item-content--selected::before {
+  background-color: rgba(255, 255, 255, 0.68) !important;
+  color: var(--text-primary) !important;
+}
+.app-sidebar-menu .n-menu-item-content.n-menu-item-content--selected {
+  border-left: 2px solid var(--accent-cyan);
+}
+
+.app-sidebar-menu .n-menu-item-content.n-menu-item-content--selected .n-icon {
+  color: var(--text-primary) !important;
+}
+
+.app-sidebar-menu .n-icon {
+  color: var(--text-primary);
+}
+
+/* 侧栏头部三色点 + 标题 */
+.app-sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--sidebar-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-sidebar-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+
+.app-sidebar-title {
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.025em;
+  color: var(--text-primary);
+}
+
+/* ========== TopNav 横向 tab ========== */
+.top-nav {
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+}
+
+.top-nav-scroll {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.top-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.top-nav-tab {
+  position: relative;
+  padding: 1rem 1.5rem;
+  font-size: 14px;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.top-nav-tab:hover {
+  color: var(--text-primary);
+}
+
+.top-nav-tab.is-active {
+  color: var(--accent-cyan);
+}
+
+.top-nav-tab-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--accent-cyan), #3b82f6);
+}
+
+/* ========== MarketTicker 横向滚动 ========== */
+.market-ticker {
+  background: rgba(15, 23, 42, 0.2);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.market-ticker-scroll {
+  display: flex;
+  align-items: center;
+  animation: ticker-scroll 30s linear infinite;
+}
+
+.market-ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.market-ticker-name {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.market-ticker-value {
+  font-size: 14px;
+  font-family: ui-monospace, monospace;
+  color: var(--text-primary);
+}
+
+.market-ticker-change {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.market-ticker-change.up {
+  color: var(--up);
+}
+
+.market-ticker-change.down {
+  color: var(--down);
+}
+
+/* telegraph 标签样式（在 ticker 内） */
+.market-ticker-telegraph {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 0 0.5rem;
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ========== 工具类 ========== */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========== 内容区子页面/卡片/表格风格（参考 table-reference-style） ========== */
+.app-view .n-card,
+.card-glass .n-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--table-border) !important;
+  border-radius: 0.5rem;
+  color: var(--text-primary);
+}
+
+.app-view .n-card .n-card__content,
+.card-glass .n-card__content {
+  color: var(--text-primary);
+}
+
+.app-view .n-list,
+.card-glass .n-list {
+  background: var(--card-bg) !important;
+  border-color: var(--table-border);
+}
+
+.app-view .n-tabs .n-tabs-tab,
+.card-glass .n-tabs-tab {
+  color: var(--text-secondary);
+}
+
+.app-view .n-tabs .n-tabs-tab.n-tabs-tab--active,
+.card-glass .n-tabs-tab--active {
+  color: var(--accent-cyan);
+}
+
+.app-view .n-tabs .n-tabs-bar,
+.card-glass .n-tabs-bar {
+  background-color: var(--accent-cyan);
+}
+
+/* 表格容器：参考 table-reference-style 的 bg-[#0d1117] rounded-lg border border-gray-800 */
+.app-view .n-data-table,
+.card-glass .n-data-table,
+.app-view table.n-table,
+.app-view .n-table {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--table-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  color: var(--text-primary);
+}
+
+/* 无卡片包裹时，表格外层的 div 也可用卡片风格 */
+.app-view > .n-table-wrapper,
+.app-view > div:has(> table.n-table) {
+  background: var(--card-bg);
+  border: 1px solid var(--table-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* 表头：bg-[#161b22] border-b border-gray-800 */
+.app-view .n-data-table .n-data-table-th,
+.app-view .n-data-table thead th,
+.app-view .n-table thead th,
+.app-view .n-thead .n-th {
+  background: var(--table-header-bg) !important;
+  border-bottom: 1px solid var(--table-border);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
   text-align: left;
 }
 
-/* 左侧菜单栏：浅色背景 + 深色文字，更清晰 */
-.n-layout-sider.app-sidebar,
-.n-layout-sider.app-sidebar .n-layout-sider-scroll-content {
-  background: #f1f5f9 !important;
+/* 表体行：border-b border-gray-800 hover:bg-[#161b22] */
+.app-view .n-data-table .n-data-table-tr,
+.app-view .n-data-table tbody tr,
+.app-view .n-table tbody tr,
+.app-view .n-table .n-tr {
+  border-bottom: 1px solid var(--table-border);
+  transition: background-color 0.15s;
 }
-.n-layout-sider.app-sidebar .n-menu .n-menu-item-content,
-.n-layout-sider.app-sidebar .n-menu .n-menu-item-content .n-menu-item-content-header {
-  color: #334155 !important;
+
+.app-view .n-data-table tbody tr:hover,
+.app-view .n-data-table .n-data-table-tr:hover,
+.app-view .n-table tbody tr:hover,
+.app-view .n-table .n-tr:hover {
+  background: var(--table-header-bg) !important;
 }
-.n-layout-sider.app-sidebar .n-menu .n-menu-item-content:hover,
-.n-layout-sider.app-sidebar .n-menu .n-menu-item-content:hover .n-icon {
-  color: #1e293b !important;
+
+/* 单元格：px-4 py-3 text-sm */
+.app-view .n-data-table .n-data-table-td,
+.app-view .n-data-table td,
+.app-view .n-table td,
+.app-view .n-table .n-td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
 }
-.n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected,
-.n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected .n-icon {
-  color: #0f172a !important;
-}
-.n-layout-sider.app-sidebar .n-menu .n-icon {
-  color: #64748b !important;
-}
-.n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected .n-icon {
-  color: #0f172a !important;
+
+.app-view .n-form-item-label,
+.app-view .n-input,
+.app-view .n-button,
+.card-glass .n-form-item-label,
+.card-glass .n-input,
+.card-glass .n-button {
+  color: var(--text-primary);
 }

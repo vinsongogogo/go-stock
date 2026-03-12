@@ -349,8 +349,8 @@ function ReFlesh(source) {
 </script>
 
 <template>
-  <n-card>
-    <n-tabs type="line" animated @update-value="updateTab" :value="nowTab" style="--wails-draggable:no-drag">
+  <div class="market-page card-glass">
+    <n-tabs type="line" animated @update-value="updateTab" :value="nowTab" style="--wails-draggable:no-drag" class="market-tabs">
       <n-tab-pane name="市场快讯" tab="市场快讯">
         <n-grid :cols="1" :y-gap="0">
           <n-gi>
@@ -683,7 +683,7 @@ function ReFlesh(source) {
         <Stockhotmap />
       </n-tab-pane>
     </n-tabs>
-  </n-card>
+  </div>
   <n-modal transform-origin="center" v-model:show="summaryModal" preset="card" style="width: 800px;"
            :title="'AI市场资讯总结'">
     <n-spin size="small" :show="loading">
@@ -758,4 +758,14 @@ function ReFlesh(source) {
 
 </template>
 <style scoped>
+.market-page {
+  padding: 1rem;
+  min-height: 100%;
+}
+.market-tabs :deep(.n-tabs-tab) {
+  color: var(--text-secondary);
+}
+.market-tabs :deep(.n-tabs-tab.n-tabs-tab--active) {
+  color: var(--accent-cyan);
+}
 </style>

@@ -29,6 +29,7 @@ declare module 'vue' {
     KLineChart: typeof import('./src/components/KLineChart.vue')['default']
     LongTigerRankList: typeof import('./src/components/LongTigerRankList.vue')['default']
     Market: typeof import('./src/components/market.vue')['default']
+    MarketTicker: typeof import('./src/components/layout/MarketTicker.vue')['default']
     MoneyTrend: typeof import('./src/components/moneyTrend.vue')['default']
     NewsList: typeof import('./src/components/newsList.vue')['default']
     PromptTemplateList: typeof import('./src/components/promptTemplateList.vue')['default']
@@ -49,5 +50,6 @@ declare module 'vue' {
     TChatContent: typeof import('@tdesign-vue-next/chat')['ChatContent']
     TChatLoading: typeof import('@tdesign-vue-next/chat')['ChatLoading']
     TChatSender: typeof import('@tdesign-vue-next/chat')['ChatSender']
+    TopNav: typeof import('./src/components/layout/TopNav.vue')['default']
   }
 }

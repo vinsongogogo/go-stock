@@ -1897,6 +1897,7 @@ function searchStockReport(stockCode) {
 </script>
 
 <template>
+  <div class="card-glass stock-page">
   <vue-danmaku v-model:danmus="danmus" useSlot
                style="height:100px; width:100%;z-index: 9;position:absolute; top: 400px; pointer-events: none;">
     <template v-slot:dm="{ index, danmu }">
@@ -2393,9 +2394,11 @@ function searchStockReport(stockCode) {
     <money-trend :code="data.code" :name="data.name" :days="360" :dark-theme="data.darkTheme"
                  :chart-height="500"></money-trend>
   </n-modal>
+  </div>
 </template>
 
 <style scoped>
+.stock-page { padding: 1rem; min-height: 100%; }
 .md-editor-preview h3 {
   text-align: center !important;
 }

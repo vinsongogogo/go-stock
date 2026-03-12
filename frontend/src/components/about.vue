@@ -74,6 +74,7 @@ EventsOn("updateVersion", async (msg) => {
 </script>
 
 <template>
+  <div class="card-glass about-page">
   <n-space vertical size="large" style="--wails-draggable:no-drag">
     <n-card size="large">
       <n-divider title-placement="center">关于</n-divider>
@@ -96,9 +97,11 @@ EventsOn("updateVersion", async (msg) => {
       </n-space>
     </n-card>
   </n-space>
+  </div>
 </template>
 
 <style scoped>
+.about-page { padding: 1rem; min-height: 100%; }
 h1, h2 { margin: 0; padding: 6px 0; }
 p { margin: 2px 0; }
 a { color: #18a058; text-decoration: none; }

@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-box">
+  <div class="chat-box card-glass agent-page">
     <t-chat
         ref="chatRef"
         :clear-history="chatList.length > 0 && !isStreamLoad"

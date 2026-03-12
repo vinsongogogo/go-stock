@@ -36,7 +36,7 @@ function updateTab(name) {
 </script>
 
 <template>
-  <n-card>
+  <div class="card-glass research-page">
     <n-tabs type="line" animated @update-value="updateTab" :value="nowTab" style="--wails-draggable:no-drag">
       <n-tab-pane name="AI分析报告">
         <ResearchReport/>
@@ -57,8 +57,9 @@ function updateTab(name) {
 <!--        <AllStockInfoList/>-->
 <!--      </n-tab-pane>-->
     </n-tabs>
-  </n-card>
+  </div>
 </template>
 
 <style scoped>
+.research-page { padding: 1rem; min-height: 100%; }
 </style>

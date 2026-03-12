@@ -1,4 +1,5 @@
 <template>
+  <div class="card-glass cron-page">
   <n-space :vertical="true" :size="16" class="cron-task-container">
     <n-card size="small">
       <!-- 搜索和筛选区域 -->
@@ -467,6 +468,7 @@
       </template>
     </n-modal>
   </n-space>
+  </div>
 </template>
 
 <script setup>
@@ -1427,6 +1429,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.cron-page { padding: 1rem; min-height: 100%; }
 .cron-row {
   display: flex;
   align-items: center;

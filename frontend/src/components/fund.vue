@@ -192,6 +192,7 @@ function blinkBorder(findId){
 </script>
 
 <template>
+  <div class="card-glass fund-page">
   <vue-danmaku v-model:danmus="danmus" useSlot style="height:100px; width:100%;z-index: 9;position:absolute; top: 400px; pointer-events: none;" >
     <template v-slot:dm="{ index, danmu }">
       <n-gradient-text type="info">
@@ -266,9 +267,11 @@ function blinkBorder(findId){
         </n-button>
     </n-input-group>
   </div>
+  </div>
 </template>
 
 <style scoped>
+.fund-page { padding: 1rem; min-height: 100%; }
 /* 添加闪烁效果的CSS类 */
 .blink-border {
   animation: blink-border 1s linear infinite;

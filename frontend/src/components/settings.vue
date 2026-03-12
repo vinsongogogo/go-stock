@@ -310,6 +310,7 @@ function deletePrompt(ID) {
 </script>
 
 <template>
+  <div class="card-glass settings-page">
   <n-flex justify="left" style="text-align: left; --wails-draggable:no-drag">
     <n-form ref="formRef" :label-placement="'left'" :label-align="'left'">
       <n-space vertical size="large">
@@ -524,9 +525,11 @@ function deletePrompt(ID) {
       </template>
     </n-card>
   </n-modal>
+  </div>
 </template>
 
 <style scoped>
+.settings-page { padding: 1rem; min-height: 100%; }
 .cardHeaderClass {
   font-size: 16px;
   font-weight: bold;
