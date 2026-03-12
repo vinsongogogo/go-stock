@@ -1907,7 +1907,7 @@ function searchStockReport(stockCode) {
       </n-gradient-text>
     </template>
   </vue-danmaku>
-  <n-tabs type="card" style="--wails-draggable:no-drag" animated addable :data-currentGroupId="currentGroupId"
+  <n-tabs type="line" class="stock-group-tabs" style="--wails-draggable:no-drag" animated addable :data-currentGroupId="currentGroupId"
           :value="String(currentGroupId)" @add="addTab" @update:value="updateTab" placement="top" @close="(key)=>{delTab(key)}">
 
     <n-tab-pane closable name="0" :tab="'全部'">
@@ -2423,6 +2423,17 @@ function searchStockReport(stockCode) {
   100% {
     border-color: red;
   }
+}
+
+/* 股票分组 tab：line 风格，激活项为绿色下划线（与市场行情 tab 一致） */
+.stock-group-tabs :deep(.n-tabs-tab) {
+  color: var(--text-secondary);
+}
+.stock-group-tabs :deep(.n-tabs-tab.n-tabs-tab--active) {
+  color: var(--text-primary);
+}
+.stock-group-tabs :deep(.n-tabs-bar) {
+  background-color: var(--up);
 }
 
 /* 所有标签的通用样式 */
