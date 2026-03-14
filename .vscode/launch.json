@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Wails App",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "env": {},
+      "args": [],
+      "preLaunchTask": "npm:build"
+    },
+    {
+      "name": "Debug Wails App (Frontend Dev Mode)",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "env": {
+        "WAILS_DEV": "true"
+      },
+      "args": [],
+      "preLaunchTask": "wails:dev:frontend"
+    }
+  ]
+}

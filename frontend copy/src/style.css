@@ -1,0 +1,50 @@
+:root {
+  --app-bg: #f5f6f8;
+  /* 左侧菜单：浅灰蓝背景，更清晰易读 */
+  --sidebar-bg: #f1f5f9;
+  --sidebar-text: #334155;
+  --sidebar-hover: #e2e8f0;
+  --content-bg: #ffffff;
+  --border-color: #e2e8f0;
+}
+
+html {
+  text-align: left;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--app-bg);
+  color: #1e293b;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  text-align: left;
+}
+
+/* 左侧菜单栏：浅色背景 + 深色文字，更清晰 */
+.n-layout-sider.app-sidebar,
+.n-layout-sider.app-sidebar .n-layout-sider-scroll-content {
+  background: #f1f5f9 !important;
+}
+.n-layout-sider.app-sidebar .n-menu .n-menu-item-content,
+.n-layout-sider.app-sidebar .n-menu .n-menu-item-content .n-menu-item-content-header {
+  color: #334155 !important;
+}
+.n-layout-sider.app-sidebar .n-menu .n-menu-item-content:hover,
+.n-layout-sider.app-sidebar .n-menu .n-menu-item-content:hover .n-icon {
+  color: #1e293b !important;
+}
+.n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected,
+.n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected .n-icon {
+  color: #0f172a !important;
+}
+.n-layout-sider.app-sidebar .n-menu .n-icon {
+  color: #64748b !important;
+}
+.n-layout-sider.app-sidebar .n-menu .n-menu-item-content.n-menu-item-content--selected .n-icon {
+  color: #0f172a !important;
+}
