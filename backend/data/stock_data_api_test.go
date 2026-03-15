@@ -223,7 +223,8 @@ func TestParseFullSingleStockData(t *testing.T) {
 func TestNewStockDataApi(t *testing.T) {
 	db.Init("../../data/stock.db")
 	stockDataApi := NewStockDataApi()
-	datas, _ := stockDataApi.GetStockCodeRealTimeData("sz002352", "sh600859", "sh600745", "gb_tsla", "hk09660", "hk00700")
+	// datas, _ := stockDataApi.GetStockCodeRealTimeData("sz002352", "sh600859", "sh600745", "gb_tsla", "hk09660", "hk00700")
+	datas, _ := stockDataApi.GetStockCodeRealTimeData("sh600519")
 	for _, data := range *datas {
 		t.Log(data)
 	}

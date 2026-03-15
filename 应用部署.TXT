@@ -1,1 +1,4 @@
 https://cloud.tencent.com/developer/article/2552418
+
+启动命令 wails dev
+构建生产包 wails build

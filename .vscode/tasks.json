@@ -54,14 +54,39 @@
     {
       "label": "wails:dev:frontend",
       "type": "shell",
-      "command": "wails",
-      "args": ["dev", "-frontend"],
-      "group": "build",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^.*$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "(Local:.*5173|ready in \\d+ ms)"
+        }
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
         "panel": "shared"
+      }
+    },
+    {
+      "label": "debug",
+      "type": "shell",
+      "command": "wails",
+      "args": ["dev"],
+      "group": "none",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
       },
       "problemMatcher": []
     },

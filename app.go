@@ -171,7 +171,7 @@ func (a *App) CheckUpdate(flag int) {
 		go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 			"time":    "发现新版本：" + releaseVersion.TagName,
 			"isRed":   true,
-			"source":  "go-stock",
+			"source":  "大聪明",
 			"content": fmt.Sprintf("%s", commit.Message),
 		})
 		resp, err := resty.New().R().Get(downloadUrl)
@@ -179,7 +179,7 @@ func (a *App) CheckUpdate(flag int) {
 			go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 				"time":    "新版本：" + releaseVersion.TagName,
 				"isRed":   true,
-				"source":  "go-stock",
+				"source":  "大聪明",
 				"content": commit.Message + "\n新版本下载失败,请稍后重试或请前往 https://github.com/ArvinLovegood/go-stock/releases 手动下载替换文件。",
 			})
 			return
@@ -190,7 +190,7 @@ func (a *App) CheckUpdate(flag int) {
 			go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 				"time":    "新版本：" + releaseVersion.TagName,
 				"isRed":   true,
-				"source":  "go-stock",
+				"source":  "大聪明",
 				"content": commit.Message + "\n新版本下载失败,请稍后重试或请前往 https://github.com/ArvinLovegood/go-stock/releases 手动下载替换文件。",
 			})
 			return
@@ -205,7 +205,7 @@ func (a *App) CheckUpdate(flag int) {
 			go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 				"time":    "新版本：" + releaseVersion.TagName,
 				"isRed":   true,
-				"source":  "go-stock",
+				"source":  "大聪明",
 				"content": "版本更新完成,下次重启软件生效.",
 			})
 		}
@@ -214,7 +214,7 @@ func (a *App) CheckUpdate(flag int) {
 			go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 				"time":    "当前版本：" + Version,
 				"isRed":   true,
-				"source":  "go-stock",
+				"source":  "大聪明",
 				"content": "当前版本无更新",
 			})
 		}

@@ -299,17 +299,35 @@ func (receiver StockDataApi) GetStockBaseInfo() {
 func (receiver StockDataApi) GetStockCodeRealTimeData(StockCodes ...string) (*[]StockInfo, error) {
 	stockInfos := make([]StockInfo, 0)
 
+	// 港股/沪/深：前缀或后缀为 hk/sh/sz 任意大小写即走腾讯接口
+	hkShSzPrefix := []string{"hk", "sh", "sz"}
 	hkcodes := slice.Filter(StockCodes, func(i int, s string) bool {
-		return strutil.HasPrefixAny(s, []string{"hk", "HK", "sh", "sz"})
+		lower := strings.ToLower(s)
+		return strutil.HasPrefixAny(lower, hkShSzPrefix) || strutil.HasSuffixAny(lower, hkShSzPrefix)
 	})
 
-	if hkcodes != nil && len(hkcodes) > 0 {
+	if len(hkcodes) > 0 {
 		hkcodesStr := slice.JoinFunc(hkcodes, ",", func(s string) string {
-			if strutil.HasPrefixAny(s, []string{"hk", "HK"}) {
-				return "r_" + strings.ToLower(s)
-			} else {
-				return strings.ToLower(s)
+			lower := strings.ToLower(s)
+			if strings.HasPrefix(lower, "hk") {
+				return "hk" + lower
 			}
+			if strings.HasSuffix(lower, ".hk") {
+				return "hk" + strings.TrimSuffix(lower, ".hk")
+			}
+			if strings.HasPrefix(lower, "sh") {
+				return "sh" + lower
+			}
+			if strings.HasSuffix(lower, ".sh") {
+				return "sh" + strings.TrimSuffix(lower, ".sh")
+			}
+			if strings.HasPrefix(lower, "sz") {
+				return "sz" + lower
+			}
+			if strings.HasSuffix(lower, ".sz") {
+				return "sz" + strings.TrimSuffix(lower, ".sz")
+			}
+			return lower
 		})
 		url := fmt.Sprintf(txStockUrl, time.Now().Unix(), hkcodesStr)
 		resp, err := receiver.client.R().

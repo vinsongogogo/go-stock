@@ -5,12 +5,13 @@ package main
 
 import (
 	"context"
+	"go-stock/backend/data"
+	"go-stock/backend/logger"
+
 	"github.com/coocood/freecache"
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/mathutil"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"go-stock/backend/data"
-	"go-stock/backend/logger"
 )
 
 // App struct
@@ -58,7 +59,7 @@ func (a *App) beforeClose(ctx context.Context) (prevent bool) {
 
 	dialog, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
 		Type:         runtime.QuestionDialog,
-		Title:        "go-stock",
+		Title:        "大聪明",
 		Message:      "确定关闭吗？",
 		Buttons:      []string{"确定"},
 		Icon:         icon,
