@@ -84,7 +84,7 @@ export default function App() {
           </div>
 
           {/* 顶部导航 */}
-          <TopNav activeTab={activeTab} setActiveTab={setActiveTab} />
+          {/* <TopNav activeTab={activeTab} setActiveTab={setActiveTab} /> */}
 
           {/* 市场指数滚动条 */}
           <MarketTicker />

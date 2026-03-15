@@ -1,44 +1,112 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+
+// Wails Go bridge
+const getApp = () => (window as any)?.go?.main?.App;
+
+interface StockIndex {
+  name: string;
+  zxj: number | string;
+  zdf: number | string;
+  img?: string;
+  location: string;
+}
+
+interface GlobalIndexes {
+  common?: StockIndex[];
+  america?: StockIndex[];
+  europe?: StockIndex[];
+  asia?: StockIndex[];
+  other?: StockIndex[];
+}
 
 export function MarketTicker() {
-  const marketData = [
-    { name: '上证指数', code: '4106.96', change: '-0.64%', isUp: false },
-    { name: '深证指数', code: '14270.35', change: '+1.36%', isUp: true },
-    { name: '富时中国A50指数', code: '14751.28', change: '-0.77%', isUp: false },
-    { name: '恒生指数', code: '25579.950', change: '+1.23%', isUp: true },
-    { name: '日经225指数', code: '54092.17', change: '+1.67%', isUp: true },
-    { name: '韩国综合指数', code: '5550.29', change: '-1.08%', isUp: false },
-    { name: '台湾加权指数', code: '33846.35', change: '-1.37%', isUp: false },
-    { name: '道琼斯指数', code: '42716.13', change: '-0.08%', isUp: false },
-    { name: '纳指500', code: '6775.80', change: '-0.08%', isUp: false },
-    { name: '道指600', code: '47417.27', change: '-0.61%', isUp: false },
-    { name: '主要股指', code: '', change: '', isUp: true }
-  ];
+  const [mainIndexes, setMainIndexes] = useState<StockIndex[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchIndexes = useCallback(async () => {
+    const App = getApp();
+    if (!App) return;
+    setLoading(true);
+    try {
+      const res: GlobalIndexes = await App.GlobalStockIndexes();
+      if (res) {
+        // Filter main indexes (matching Vue component logic)
+        const mainLocations = ['上海', '深圳', '香港', '台湾', '北京', '东京', '首尔', '纽约', '纳斯达克'];
+        const asiaMain = (res.asia || []).filter(item => mainLocations.includes(item.location));
+        const americaMain = (res.america || []).filter(item => mainLocations.includes(item.location));
+        const combined = [...asiaMain, ...americaMain];
+        setMainIndexes(combined);
+      }
+    } catch (e) {
+      console.error('Failed to fetch indexes:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchIndexes();
+  }, [fetchIndexes]);
+
+  // Auto refresh every 2 seconds (matching Vue component)
+  useEffect(() => {
+    const timer = setInterval(fetchIndexes, 2000);
+    return () => clearInterval(timer);
+  }, [fetchIndexes]);
+
+  const formatNumber = (val: number | string): string => {
+    const num = typeof val === 'number' ? val : parseFloat(String(val || 0));
+    return num.toFixed(2);
+  };
+
+  const getChangePercent = (val: number | string): string => {
+    const num = typeof val === 'number' ? val : parseFloat(String(val || 0));
+    return (num > 0 ? '+' : '') + num.toFixed(2) + '%';
+  };
+
+  const isPositive = (val: number | string): boolean => {
+    const num = typeof val === 'number' ? val : parseFloat(String(val || 0));
+    return num >= 0;
+  };
+
+  // Duplicate data for seamless scrolling animation
+  const displayData = mainIndexes.length > 0 ? [...mainIndexes, ...mainIndexes] : [];
+
+  if (mainIndexes.length === 0) {
+    return (
+      <div className="bg-slate-900/20 backdrop-blur-sm border-b border-white/5 overflow-hidden hidden sm:block">
+        <div className="flex items-center justify-center py-2 sm:py-3">
+          <span className="text-xs text-gray-500">{loading ? '加载中...' : '暂无数据'}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-900/20 backdrop-blur-sm border-b border-white/5 overflow-hidden hidden sm:block">
       <div className="flex animate-scroll">
-        {[...marketData, ...marketData].map((item, index) => (
+        {displayData.map((item, index) => (
           <div
             key={index}
             className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 whitespace-nowrap border-r border-white/5"
           >
-            <span className="text-xs text-gray-400">{item.name}</span>
-            {item.code && (
-              <>
-                <span className="text-xs sm:text-sm font-mono">{item.code}</span>
-                <span className={`text-xs flex items-center gap-1 ${
-                  item.isUp ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {item.isUp ? (
-                    <TrendingUp className="w-3 h-3" />
-                  ) : (
-                    <TrendingDown className="w-3 h-3" />
-                  )}
-                  {item.change}
-                </span>
-              </>
+            {item.img && (
+              <img src={item.img} alt={item.name} className="w-4 h-4 rounded" />
             )}
+            <span className="text-xs text-gray-400">{item.name}</span>
+            <span className="text-xs sm:text-sm font-mono">{formatNumber(item.zxj)}</span>
+            <span className={`text-xs flex items-center gap-1 ${
+              isPositive(item.zdf) ? 'text-red-400' : 'text-green-400'
+            }`}>
+              {isPositive(item.zdf) ? (
+                <TrendingUp className="w-3 h-3" />
+              ) : (
+                <TrendingDown className="w-3 h-3" />
+              )}
+              {getChangePercent(item.zdf)}
+            </span>
           </div>
         ))}
       </div>

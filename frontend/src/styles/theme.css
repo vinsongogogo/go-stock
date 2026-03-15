@@ -191,7 +191,7 @@
 }
 
 .animate-scroll {
-  animation: scroll 30s linear infinite;
+  animation: scroll 15s linear infinite;
 }
 
 .scrollbar-hide {
@@ -200,5 +200,15 @@
 }
 
 .scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 全局隐藏滚动条，保留滚动能力 */
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
   display: none;
 }
