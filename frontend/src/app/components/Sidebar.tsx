@@ -4,6 +4,7 @@ import { useState } from 'react';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onDashboardClick?: () => void;
   onWatchlistClick?: () => void;
   onAboutClick?: () => void;
   onMoneyFlowClick?: () => void;
@@ -13,73 +14,92 @@ interface SidebarProps {
   currentView?: string;
 }
 
-export function Sidebar({ isOpen, onClose, onWatchlistClick, onAboutClick, onMoneyFlowClick, onStockFilterClick, onSettingsClick, onAIAnalysisClick, currentView }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, onDashboardClick, onWatchlistClick, onAboutClick, onMoneyFlowClick, onStockFilterClick, onSettingsClick, onAIAnalysisClick, currentView }: SidebarProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>('行情中心');
 
   const menuItems = [
     {
       icon: TrendingUp,
+      label: '自选列表',
+      view: 'watchlist',
+      submenu: []
+    },
+    {
+      icon: TrendingUp,
       label: '行情中心',
-      submenu: ['快讯', '指数', '核心指数']
+      view: 'dashboard',
+      submenu: []
     },
     {
       icon: BarChart3,
       label: '指数',
+      view: '',
       submenu: []
     },
     {
       icon: LineChart,
       label: '核心指数',
+      view: '',
       submenu: []
     },
     {
       icon: Activity,
       label: '行业榜',
+      view: '',
       submenu: []
     },
     {
       icon: Globe,
       label: '资金流向',
+      view: 'moneyflow',
       submenu: []
     },
     {
       icon: Building2,
       label: '龙虎榜',
+      view: '',
       submenu: []
     },
     {
       icon: FileText,
       label: '研报',
+      view: '',
       submenu: []
     },
     {
       icon: Code,
       label: '公告',
+      view: '',
       submenu: []
     },
     {
       icon: Filter,
       label: '股票筛选',
+      view: 'stockfilter',
       submenu: []
     },
     {
       icon: MessageSquare,
       label: '行业研究',
+      view: '',
       submenu: []
     },
     {
       icon: FileText,
       label: '热门',
+      view: '',
       submenu: []
     },
     {
       icon: Activity,
       label: '选股',
+      view: '',
       submenu: []
     },
     {
       icon: BarChart3,
       label: '精选',
+      view: '',
       submenu: []
     }
   ];
@@ -104,32 +124,13 @@ export function Sidebar({ isOpen, onClose, onWatchlistClick, onAboutClick, onMon
         </div>
       </div>
 
-      {/* 自选列表 */}
-      <div className="p-4 border-b border-white/10">
-        <button 
-          onClick={onWatchlistClick}
-          className={`w-full flex items-center justify-between hover:bg-white/5 rounded-lg p-2 transition-all group ${
-            currentView === 'watchlist' ? 'bg-white/10' : ''
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <TrendingUp className={`w-4 h-4 group-hover:scale-110 transition-transform ${
-              currentView === 'watchlist' ? 'text-cyan-400' : 'text-cyan-400'
-            }`} />
-            <span className={`text-sm group-hover:text-cyan-400 transition-colors ${
-              currentView === 'watchlist' ? 'text-cyan-400' : ''
-            }`}>自选列表</span>
-          </div>
-          <ChevronDown className="w-4 h-4 text-gray-400" />
-        </button>
-      </div>
-
       {/* 菜单项 */}
       <div className="flex-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isExpanded = expandedSection === item.label;
           const hasSubmenu = item.submenu && item.submenu.length > 0;
+          const isActive = item.view ? currentView === item.view : false;
 
           return (
             <div key={item.label}>
@@ -137,6 +138,10 @@ export function Sidebar({ isOpen, onClose, onWatchlistClick, onAboutClick, onMon
                 onClick={() => {
                   if (hasSubmenu) {
                     setExpandedSection(isExpanded ? null : item.label);
+                  } else if (item.label === '自选列表') {
+                    onWatchlistClick?.();
+                  } else if (item.label === '行情中心') {
+                    onDashboardClick?.();
                   } else if (item.label === '资金流向') {
                     onMoneyFlowClick?.();
                   } else if (item.label === '股票筛选') {
@@ -144,20 +149,22 @@ export function Sidebar({ isOpen, onClose, onWatchlistClick, onAboutClick, onMon
                   }
                 }}
                 className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-all group ${
-                  expandedSection === item.label ? 'bg-white/5 border-l-2 border-cyan-400' : ''
+                  isActive ? 'bg-white/5 border-l-2 border-cyan-400' : ''
                 }`}
               >
                 <Icon className={`w-5 h-5 transition-colors ${
-                  expandedSection === item.label ? 'text-cyan-400' : 'text-gray-400 group-hover:text-cyan-400'
+                  isActive ? 'text-cyan-400' : 'text-gray-400 group-hover:text-cyan-400'
                 }`} />
-                <span className="flex-1 text-left text-sm">{item.label}</span>
+                <span className={`flex-1 text-left text-sm ${
+                  isActive ? 'text-cyan-400' : ''
+                }`}>{item.label}</span>
                 {item.submenu.length > 0 && (
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
-                    expandedSection === item.label ? 'rotate-180' : ''
+                    isExpanded ? 'rotate-180' : ''
                   }`} />
                 )}
               </button>
-              {expandedSection === item.label && item.submenu.length > 0 && (
+              {isExpanded && item.submenu.length > 0 && (
                 <div className="bg-slate-800/30">
                   {item.submenu.map((subItem) => (
                     <button

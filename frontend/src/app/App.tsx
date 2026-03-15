@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { TopNav } from './components/TopNav';
-import { MarketGauge } from './components/MarketGauge';
-import { TreeMap } from './components/TreeMap';
-import { NewsFeed } from './components/NewsFeed';
 import { MarketTicker } from './components/MarketTicker';
+import { Dashboard } from './components/Dashboard';
 import { Watchlist } from './components/Watchlist';
 import { AboutUs } from './components/AboutUs';
 import { MoneyFlow } from './components/MoneyFlow';
@@ -39,7 +37,11 @@ export default function App() {
         {/* 侧边栏 */}
         <Sidebar 
           isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
+          onClose={() => setSidebarOpen(false)}
+          onDashboardClick={() => {
+            setCurrentView('dashboard');
+            setSidebarOpen(false);
+          }}
           onWatchlistClick={() => {
             setCurrentView('watchlist');
             setSidebarOpen(false); // 移动端关闭侧边栏
@@ -90,20 +92,7 @@ export default function App() {
           {/* 主要内容 */}
           <div className="flex-1 overflow-auto p-3 sm:p-6">
             <div className="max-w-[1600px] mx-auto space-y-4 sm:space-y-6">
-            {currentView === 'dashboard' && (
-              <>
-                {/* 市场数据和热词 */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <MarketGauge />
-                  <div className="lg:col-span-2">
-                    <TreeMap />
-                  </div>
-                </div>
-
-                {/* 新闻板块 */}
-                <NewsFeed />
-              </>
-            )}
+            {currentView === 'dashboard' && <Dashboard />}
             {currentView === 'watchlist' && <Watchlist />}
             {currentView === 'about' && <AboutUs />}
             {currentView === 'moneyflow' && <MoneyFlow />}
