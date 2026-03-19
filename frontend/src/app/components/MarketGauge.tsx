@@ -4,22 +4,37 @@ import { useState, useEffect, useCallback } from 'react';
 // Wails Go bridge
 const getApp = () => (window as any)?.go?.main?.App;
 
-interface WordFreq {
-  Word: string;
-  Frequency: number;
-  Weight: number;
-  Score: number;
-}
-
-interface SentimentResult {
-  Score: number;
-  Sentiment: string;
-  Confidence: number;
-}
-
-interface SentimentData {
-  result: SentimentResult;
-  frequencies: WordFreq[];
+// 多维度情绪数据结构
+interface MarketSentimentData {
+  totalScore: number;
+  limitUpDown: {
+    limitUpCount: number;
+    limitDownCount: number;
+    score: number;
+    weight: number;
+  };
+  upDownCount: {
+    upCount: number;
+    downCount: number;
+    flatCount: number;
+    ratio: number;
+    score: number;
+    weight: number;
+  };
+  northFund: {
+    netInflow: number;
+    shInflow: number;
+    szInflow: number;
+    score: number;
+    weight: number;
+  };
+  nlpSentiment: {
+    score: number;
+    normalizedScore: number;
+    description: string;
+    weight: number;
+  };
+  updateTime: string;
 }
 
 interface StockIndex {
@@ -63,24 +78,24 @@ function getSentimentColor(value: number): string {
 }
 
 export function MarketGauge() {
-  const [sentiment, setSentiment] = useState<SentimentResult | null>(null);
-  const [frequencies, setFrequencies] = useState<WordFreq[]>([]);
+  const [data, setData] = useState<MarketSentimentData | null>(null);
   const [mainIndexes, setMainIndexes] = useState<StockIndex[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // Fetch sentiment data
+  // Fetch sentiment data - 使用新的多维度评分接口
   const fetchSentiment = useCallback(async () => {
     const App = getApp();
     if (!App) return;
     setLoading(true);
     try {
-      const res: SentimentData = await App.AnalyzeSentimentWithFreqWeight('');
+      const res: MarketSentimentData = await App.GetMarketSentimentScore();
       if (res) {
-        setSentiment(res.result);
-        setFrequencies(res.frequencies?.slice(0, 10) || []);
+        setData(res);
         setLastUpdate(new Date());
       }
+    } catch (e) {
+      console.error('Failed to fetch market sentiment:', e);
     } finally {
       setLoading(false);
     }
@@ -120,18 +135,19 @@ export function MarketGauge() {
     };
   }, [fetchSentiment, fetchIndexes]);
 
-  const sentimentScore = sentiment ? sentiment.Score * 0.2 : 0;
+  // 使用新数据结构的总分
+  const sentimentScore = data?.totalScore || 0;
   const percentage = Math.min(Math.max((sentimentScore + 100) / 2, 0), 100);
 
-  // Calculate bull/bear/neutral percentages from frequencies
-  const totalFreq = frequencies.reduce((sum, f) => sum + f.Frequency, 0) || 1;
-  const bullish = frequencies.filter(f => f.Score > 0).reduce((sum, f) => sum + f.Frequency, 0);
-  const bearish = frequencies.filter(f => f.Score < 0).reduce((sum, f) => sum + f.Frequency, 0);
-  const neutral = frequencies.filter(f => f.Score === 0).reduce((sum, f) => sum + f.Frequency, 0);
+  // 基于涨跌家数计算看涨/中性/看跌占比
+  const upCount = data?.upDownCount?.upCount || 0;
+  const downCount = data?.upDownCount?.downCount || 0;
+  const flatCount = data?.upDownCount?.flatCount || 0;
+  const totalStocks = upCount + downCount + flatCount || 1;
 
-  const bullishPct = Math.round((bullish / totalFreq) * 100) || 62;
-  const bearishPct = Math.round((bearish / totalFreq) * 100) || 15;
-  const neutralPct = 100 - bullishPct - bearishPct || 23;
+  const bullishPct = Math.round((upCount / totalStocks) * 100) || 50;
+  const bearishPct = Math.round((downCount / totalStocks) * 100) || 30;
+  const neutralPct = 100 - bullishPct - bearishPct;
 
   return (
     <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 shadow-2xl hover:border-cyan-500/30 transition-all">
@@ -246,7 +262,40 @@ export function MarketGauge() {
         </div>
       </div>
 
-      {/* Bottom stats */}
+      {/* 新增：迷你指标卡片区域 */}
+      {data && (
+        <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-1.5 sm:gap-2">
+          {/* 涨停/跌停 */}
+          <div className="bg-slate-800/40 rounded-lg p-2 text-center border border-white/5">
+            <div className="text-[9px] sm:text-[10px] text-gray-500">涨停/跌停</div>
+            <div className="text-sm sm:text-base">
+              <span className="text-red-400 font-medium">{data.limitUpDown?.limitUpCount || 0}</span>
+              <span className="text-gray-500 mx-1">/</span>
+              <span className="text-green-400 font-medium">{data.limitUpDown?.limitDownCount || 0}</span>
+            </div>
+          </div>
+          
+          {/* 涨跌家数 */}
+          <div className="bg-slate-800/40 rounded-lg p-2 text-center border border-white/5">
+            <div className="text-[9px] sm:text-[10px] text-gray-500">涨跌家数</div>
+            <div className="text-sm sm:text-base">
+              <span className="text-red-400 font-medium">{data.upDownCount?.upCount || 0}</span>
+              <span className="text-gray-500 mx-1">/</span>
+              <span className="text-green-400 font-medium">{data.upDownCount?.downCount || 0}</span>
+            </div>
+          </div>
+          
+          {/* 北向资金 */}
+          <div className="bg-slate-800/40 rounded-lg p-2 text-center col-span-2 border border-white/5">
+            <div className="text-[9px] sm:text-[10px] text-gray-500">北向资金净流入</div>
+            <div className={`text-sm sm:text-base font-medium ${(data.northFund?.netInflow || 0) >= 0 ? 'text-red-400' : 'text-green-400'}`}>
+              {(data.northFund?.netInflow || 0) >= 0 ? '+' : ''}{(data.northFund?.netInflow || 0).toFixed(2)}亿
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom stats - 看涨/中性/看跌占比 */}
       <div className="mt-2 sm:mt-3 grid grid-cols-3 gap-1.5 sm:gap-2">
         <div className="bg-red-500/10 rounded-lg p-2 sm:p-3 border border-red-500/20">
           <div className="text-[10px] sm:text-xs text-gray-400 mb-0.5">看涨</div>
@@ -261,29 +310,6 @@ export function MarketGauge() {
           <div className="text-sm sm:text-base text-green-400">{bearishPct}%</div>
         </div>
       </div>
-
-      {/* Top keywords */}
-      {/* {frequencies.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-white/10">
-          <div className="text-[10px] text-gray-500 mb-2">热词</div>
-          <div className="flex flex-wrap gap-1">
-            {frequencies.slice(0, 8).map((word, i) => (
-              <span
-                key={i}
-                className={`px-1.5 py-0.5 rounded text-[9px] border ${
-                  word.Score > 0
-                    ? 'bg-red-500/10 border-red-500/30 text-red-400'
-                    : word.Score < 0
-                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                    : 'bg-white/5 border-white/10 text-gray-400'
-                }`}
-              >
-                {word.Word}
-              </span>
-            ))}
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }

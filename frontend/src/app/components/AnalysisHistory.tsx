@@ -132,7 +132,11 @@ const getStarRating = (score: number): number => {
 // =====================
 // 主组件
 // =====================
-export default function AnalysisHistory() {
+interface AnalysisHistoryProps {
+  embedded?: boolean;
+}
+
+export default function AnalysisHistory({ embedded = false }: AnalysisHistoryProps) {
   // 查询参数
   const [searchText, setSearchText] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -347,23 +351,25 @@ export default function AnalysisHistory() {
 
   return (
     <div className="space-y-3">
-      {/* 头部 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <History className="w-6 h-6 text-white" />
+      {/* 头部 — embedded 模式下隐藏 */}
+      {!embedded && (
+        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <History className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl text-white font-light">分析历史记录</h2>
+                <p className="text-xs text-gray-400">Analysis History · Review Past Insights</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl text-white font-light">分析历史记录</h2>
-              <p className="text-xs text-gray-400">Analysis History · Review Past Insights</p>
+            <div className="text-sm text-gray-400">
+              共 {pageData?.total || 0} 条记录
             </div>
-          </div>
-          <div className="text-sm text-gray-400">
-            共 {pageData?.total || 0} 条记录
           </div>
         </div>
-      </div>
+      )}
 
       {/* 错误提示 */}
       {error && (

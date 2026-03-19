@@ -63,6 +63,8 @@ export function ExecuteCronTaskNow(arg1:number):Promise<string>;
 
 export function ExportConfig():Promise<string>;
 
+export function FetchTushareNews(arg1:string):Promise<string>;
+
 export function Follow(arg1:string):Promise<string>;
 
 export function FollowFund(arg1:string):Promise<string>;
@@ -107,9 +109,17 @@ export function GetGroupStockList(arg1:number):Promise<Array<data.GroupStock>>;
 
 export function GetHotStrategy():Promise<Record<string, any>>;
 
+export function GetHotWords():Promise<Array<Record<string, any>>>;
+
+export function GetIndustryHeatMap():Promise<Record<string, any>>;
+
 export function GetIndustryMoneyRankSina(arg1:string,arg2:string):Promise<Array<Record<string, any>>>;
 
 export function GetIndustryRank(arg1:string,arg2:number):Promise<Array<any>>;
+
+export function GetMarketEvents():Promise<Array<Record<string, any>>>;
+
+export function GetMarketSentimentScore():Promise<Record<string, any>>;
 
 export function GetMoneyRankSina(arg1:string):Promise<Array<Record<string, any>>>;
 

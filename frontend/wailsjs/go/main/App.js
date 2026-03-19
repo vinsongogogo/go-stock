@@ -118,6 +118,10 @@ export function ExportConfig() {
   return window['go']['main']['App']['ExportConfig']();
 }
 
+export function FetchTushareNews(arg1) {
+  return window['go']['main']['App']['FetchTushareNews'](arg1);
+}
+
 export function Follow(arg1) {
   return window['go']['main']['App']['Follow'](arg1);
 }
@@ -206,12 +210,28 @@ export function GetHotStrategy() {
   return window['go']['main']['App']['GetHotStrategy']();
 }
 
+export function GetHotWords() {
+  return window['go']['main']['App']['GetHotWords']();
+}
+
+export function GetIndustryHeatMap() {
+  return window['go']['main']['App']['GetIndustryHeatMap']();
+}
+
 export function GetIndustryMoneyRankSina(arg1, arg2) {
   return window['go']['main']['App']['GetIndustryMoneyRankSina'](arg1, arg2);
 }
 
 export function GetIndustryRank(arg1, arg2) {
   return window['go']['main']['App']['GetIndustryRank'](arg1, arg2);
+}
+
+export function GetMarketEvents() {
+  return window['go']['main']['App']['GetMarketEvents']();
+}
+
+export function GetMarketSentimentScore() {
+  return window['go']['main']['App']['GetMarketSentimentScore']();
 }
 
 export function GetMoneyRankSina(arg1) {

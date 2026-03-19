@@ -1,100 +1,208 @@
-import { Flame, TrendingUp, Zap } from 'lucide-react';
+import { Flame, TrendingUp, TrendingDown, Zap, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+
+// Wails Go bridge
+const getApp = () => (window as any)?.go?.main?.App;
+
+// 行业数据结构
+interface IndustryItem {
+  name: string;
+  code: string;
+  change: number;
+  volume: string;
+  netInflow: number;
+  flowDirection: string;
+}
+
+// 热词数据结构
+interface HotWordItem {
+  word: string;
+  heat: number;
+  trend: string;
+  change: string;
+}
 
 export function TreeMap() {
-  const hotWords = [
-    { word: '科技股', heat: 95, trend: 'up', change: '+12%' },
-    { word: '新能源', heat: 88, trend: 'up', change: '+8%' },
-    { word: '半导体', heat: 82, trend: 'down', change: '-3%' },
-    { word: '人工智能', heat: 78, trend: 'up', change: '+15%' },
-    { word: '医药', heat: 65, trend: 'up', change: '+5%' },
-    { word: '银行', heat: 58, trend: 'down', change: '-2%' },
-    { word: '房地产', heat: 45, trend: 'down', change: '-6%' },
-    { word: '白酒', heat: 42, trend: 'up', change: '+3%' },
-  ];
+  const [industries, setIndustries] = useState<IndustryItem[]>([]);
+  const [topConcepts, setTopConcepts] = useState<string[]>([]);
+  const [hotWords, setHotWords] = useState<HotWordItem[]>([]);
+  const [industryLoading, setIndustryLoading] = useState(false);
+  const [hotWordsLoading, setHotWordsLoading] = useState(false);
 
-  const sectors = [
-    { name: '科技', value: 2847, change: '+3.2%', color: 'bg-gradient-to-br from-cyan-500/20 to-blue-600/20', borderColor: 'border-cyan-500/30', textColor: '#06b6d4', glowColor: 'rgba(6, 182, 212, 0.3)', positive: true, trendColor: 'text-green-400', volume: '28.4亿' },
-    { name: '金融', value: 1923, change: '-1.1%', color: 'bg-gradient-to-br from-purple-500/20 to-pink-600/20', borderColor: 'border-purple-500/30', textColor: '#a855f7', glowColor: 'rgba(168, 85, 247, 0.3)', positive: false, trendColor: 'text-red-400', volume: '19.2亿' },
-    { name: '消费', value: 1654, change: '+2.4%', color: 'bg-gradient-to-br from-orange-500/20 to-red-600/20', borderColor: 'border-orange-500/30', textColor: '#f97316', glowColor: 'rgba(249, 115, 22, 0.3)', positive: true, trendColor: 'text-green-400', volume: '16.5亿' },
-    { name: '医疗', value: 1432, change: '+1.8%', color: 'bg-gradient-to-br from-green-500/20 to-emerald-600/20', borderColor: 'border-green-500/30', textColor: '#10b981', glowColor: 'rgba(16, 185, 129, 0.3)', positive: true, trendColor: 'text-green-400', volume: '14.3亿' },
-    { name: '能源', value: 1287, change: '-0.8%', color: 'bg-gradient-to-br from-yellow-500/20 to-orange-600/20', borderColor: 'border-yellow-500/30', textColor: '#eab308', glowColor: 'rgba(234, 179, 8, 0.3)', positive: false, trendColor: 'text-red-400', volume: '12.8亿' },
-    { name: '工业', value: 1156, change: '+0.5%', color: 'bg-gradient-to-br from-indigo-500/20 to-purple-600/20', borderColor: 'border-indigo-500/30', textColor: '#6366f1', glowColor: 'rgba(99, 102, 241, 0.3)', positive: true, trendColor: 'text-green-400', volume: '11.5亿' },
-  ];
+  // 获取行业热力数据
+  const fetchIndustry = useCallback(async () => {
+    const App = getApp();
+    if (!App) return;
+    setIndustryLoading(true);
+    try {
+      const res = await App.GetIndustryHeatMap();
+      if (res) {
+        setIndustries(res.industries || []);
+        setTopConcepts(res.topConcepts || []);
+      }
+    } catch (e) {
+      console.error('fetchIndustry error:', e);
+    } finally {
+      setIndustryLoading(false);
+    }
+  }, []);
+
+  // 获取热词数据
+  const fetchHotWords = useCallback(async () => {
+    const App = getApp();
+    if (!App) return;
+    setHotWordsLoading(true);
+    try {
+      const res = await App.GetHotWords();
+      if (res) setHotWords(res);
+    } catch (e) {
+      console.error('fetchHotWords error:', e);
+    } finally {
+      setHotWordsLoading(false);
+    }
+  }, []);
+
+  // 初始加载和定时刷新
+  useEffect(() => {
+    fetchIndustry();
+    fetchHotWords();
+    
+    // 行业数据 5 分钟刷新，热词 60 分钟刷新
+    const industryTimer = setInterval(fetchIndustry, 5 * 60 * 1000);
+    const hotWordsTimer = setInterval(fetchHotWords, 60 * 60 * 1000);
+    
+    return () => {
+      clearInterval(industryTimer);
+      clearInterval(hotWordsTimer);
+    };
+  }, [fetchIndustry, fetchHotWords]);
 
   return (
     <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 shadow-2xl hover:border-cyan-500/30 transition-all h-full">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 h-full">
-        {/* 左侧：行业热力 */}
+        {/* 左侧：行业热力 - 动态数据 */}
         <div className="md:col-span-2">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <h3 className="text-sm text-cyan-400 tracking-wide flex items-center gap-2">
               <Flame className="w-4 h-4" />
               行业热力图
             </h3>
-            <span className="text-xs text-gray-500">LIVE</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">LIVE</span>
+              <button
+                onClick={fetchIndustry}
+                disabled={industryLoading}
+                className="p-1 rounded hover:bg-white/10 text-gray-500 hover:text-cyan-400 transition-all disabled:opacity-40"
+                title="刷新行业数据"
+              >
+                <RefreshCw className={`w-3 h-3 ${industryLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
           
-          {/* 数据流式布局 */}
+          {/* 行业卡片网格 - 动态数据 */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
-            {sectors.map((sector, index) => (
-              <div
-                key={index}
-                className={`relative rounded-xl p-2 sm:p-3 backdrop-blur border border-white/10 hover:scale-105 transition-all cursor-pointer group overflow-hidden ${sector.color}`}
-                style={{
-                  boxShadow: `0 0 20px ${sector.glowColor}`,
-                }}
-              >
-                {/* 动态光效 */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-100%] group-hover:translate-x-[100%] duration-700"></div>
-                
-                {/* 文字内容 */}
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] sm:text-xs text-gray-300">{sector.name}</span>
-                    <TrendingUp className={`w-3 h-3 ${sector.trendColor}`} />
+            {industries.length === 0 && !industryLoading && (
+              <div className="col-span-full text-center py-8 text-gray-500 text-xs">暂无行业数据</div>
+            )}
+            {industryLoading && industries.length === 0 && (
+              <div className="col-span-full text-center py-8 text-gray-500 text-xs">加载中...</div>
+            )}
+            {industries.slice(0, 6).map((sector, index) => {
+              const isPositive = sector.change > 0;
+              const colorClass = isPositive 
+                ? 'bg-gradient-to-br from-red-500/10 to-red-600/20' 
+                : 'bg-gradient-to-br from-green-500/10 to-green-600/20';
+              const glowColor = isPositive ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)';
+              const textColor = isPositive ? '#ef4444' : '#22c55e';
+              
+              return (
+                <div
+                  key={sector.code || index}
+                  className={`relative rounded-xl p-2 sm:p-3 backdrop-blur border border-white/10 hover:scale-105 transition-all cursor-pointer group overflow-hidden ${colorClass}`}
+                  style={{ boxShadow: `0 0 20px ${glowColor}` }}
+                >
+                  {/* 动态光效 */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-100%] group-hover:translate-x-[100%] duration-700"></div>
+                  
+                  {/* 文字内容 */}
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] sm:text-xs text-gray-300 truncate">{sector.name}</span>
+                      <span className={`text-[10px] ${sector.flowDirection === 'in' ? 'text-red-400' : 'text-green-400'}`}>
+                        {sector.flowDirection === 'in' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                      </span>
+                    </div>
+                    <div className="text-base sm:text-lg font-light mb-0.5" style={{ color: textColor }}>
+                      {isPositive ? '+' : ''}{sector.change.toFixed(2)}%
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-500">{sector.volume || '-'}</div>
                   </div>
-                  <div className="text-base sm:text-lg font-light mb-0.5" style={{ color: sector.textColor }}>
-                    {sector.change}
-                  </div>
-                  <div className="text-[10px] sm:text-xs text-gray-500">{sector.volume}</div>
-                </div>
 
-                {/* 进度条 */}
-                <div className="relative h-0.5 sm:h-1 bg-slate-700/50 rounded-full overflow-hidden mt-1">
-                  <div 
-                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-1000"
-                    style={{ width: `${(sector.value / 3000) * 100}%` }}
-                  ></div>
+                  {/* 资金流向进度条 */}
+                  <div className="relative h-0.5 sm:h-1 bg-slate-700/50 rounded-full overflow-hidden mt-1">
+                    <div 
+                      className={`h-full ${sector.flowDirection === 'in' ? 'bg-gradient-to-r from-red-400 to-red-500' : 'bg-gradient-to-r from-green-400 to-green-500'} transition-all duration-1000`}
+                      style={{ width: `${Math.min(Math.abs(sector.netInflow || 0) / 10, 100)}%` }}
+                    ></div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* 小板块快速视图 */}
-          <div className="mt-2 sm:mt-3 grid grid-cols-4 sm:grid-cols-6 gap-1 sm:gap-1.5">
-            {['芯片', '5G', 'AI', '新零售', '云计算', '区块链', '物联网', '大数据', '自动驾驶', '机器人', '生物科技', '量子'].map((item, index) => (
+          {/* 概念标签 - 动态展示涨幅Top8行业 */}
+          <div className="mt-2 sm:mt-3 grid grid-cols-4 sm:grid-cols-8 gap-1 sm:gap-1.5">
+            {topConcepts.length === 0 && (
+              // 默认占位
+              Array.from({ length: 8 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-slate-800/40 backdrop-blur rounded-lg p-1 sm:p-1.5 text-center border border-white/5"
+                >
+                  <span className="text-[9px] sm:text-[10px] text-gray-600">--</span>
+                </div>
+              ))
+            )}
+            {topConcepts.map((item, index) => (
               <div
                 key={index}
                 className="bg-slate-800/40 backdrop-blur rounded-lg p-1 sm:p-1.5 text-center hover:bg-cyan-500/20 hover:border-cyan-500/50 border border-white/5 transition-all cursor-pointer group"
               >
-                <span className="text-[9px] sm:text-[10px] text-gray-400 group-hover:text-cyan-400">{item}</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-400 group-hover:text-cyan-400 truncate block">{item}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 右侧：24小时热词 */}
+        {/* 右侧：24小时热词 - 动态数据 */}
         <div className="md:border-l md:border-white/10 md:pl-3 xl:pl-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <h3 className="text-sm text-cyan-400 tracking-wide flex items-center gap-2">
               <Zap className="w-4 h-4" />
               24H热词
             </h3>
-            <span className="text-[10px] sm:text-xs text-gray-500">TOP 8</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] sm:text-xs text-gray-500">TOP 8</span>
+              <button
+                onClick={fetchHotWords}
+                disabled={hotWordsLoading}
+                className="p-1 rounded hover:bg-white/10 text-gray-500 hover:text-cyan-400 transition-all disabled:opacity-40"
+                title="刷新热词"
+              >
+                <RefreshCw className={`w-3 h-3 ${hotWordsLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-1 sm:space-y-1.5">
-            {hotWords.map((item, index) => (
+            {hotWords.length === 0 && !hotWordsLoading && (
+              <div className="text-center py-8 text-gray-500 text-xs">暂无热词数据</div>
+            )}
+            {hotWordsLoading && hotWords.length === 0 && (
+              <div className="text-center py-8 text-gray-500 text-xs">加载中...</div>
+            )}
+            {hotWords.slice(0, 8).map((item, index) => (
               <div
                 key={index}
                 className="bg-slate-800/30 backdrop-blur rounded-lg p-1.5 sm:p-2 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer group"
@@ -108,14 +216,14 @@ export function TreeMap() {
                     </div>
                     <span className="text-[10px] sm:text-xs text-gray-300 group-hover:text-cyan-400 transition-colors">{item.word}</span>
                   </div>
-                  <span className={`text-[10px] sm:text-xs ${item.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
+                  <span className={`text-[10px] sm:text-xs ${item.trend === 'up' ? 'text-red-400' : item.trend === 'down' ? 'text-green-400' : 'text-gray-400'}`}>
                     {item.change}
                   </span>
                 </div>
                 {/* 热度进度条 */}
                 <div className="relative h-0.5 sm:h-1 bg-slate-700/50 rounded-full overflow-hidden">
                   <div
-                    className={`h-full ${item.trend === 'up' ? 'bg-gradient-to-r from-cyan-500 to-blue-500' : 'bg-gradient-to-r from-red-500 to-orange-500'} transition-all duration-1000`}
+                    className={`h-full ${item.trend === 'up' ? 'bg-gradient-to-r from-cyan-500 to-blue-500' : item.trend === 'down' ? 'bg-gradient-to-r from-red-500 to-orange-500' : 'bg-gradient-to-r from-gray-500 to-gray-400'} transition-all duration-1000`}
                     style={{ width: `${item.heat}%` }}
                   ></div>
                 </div>

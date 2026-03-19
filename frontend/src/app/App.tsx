@@ -9,13 +9,12 @@ import { MoneyFlow } from './components/MoneyFlow';
 import { StockFilter } from './components/StockFilter';
 import { Settings } from './components/Settings';
 import { AIAnalysis } from './components/AIAnalysis';
-import AnalysisHistory from './components/AnalysisHistory';
 import { LongTigerRank } from './components/LongTigerRank';
 import { Menu } from 'lucide-react';
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'watchlist', 'about', 'moneyflow', 'stockfilter', 'settings', 'aianalysis', 'longtiger', 'analysisHistory'
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'watchlist', 'about', 'moneyflow', 'stockfilter', 'settings', 'aianalysis', 'longtiger'
   const compactLayout = useCompactLayout();
 
   // Keep-Alive: 追踪已访问的页面
@@ -86,10 +85,6 @@ export default function App() {
             setCurrentView('longtiger');
             setSidebarOpen(false);
           }}
-          onAnalysisHistoryClick={() => {
-            setCurrentView('analysisHistory');
-            setSidebarOpen(false);
-          }}
           currentView={currentView}
         />
 
@@ -140,9 +135,6 @@ export default function App() {
               </div>
               <div style={{ display: currentView === 'longtiger' ? 'block' : 'none' }}>
                 {visitedViews.has('longtiger') && <LongTigerRank />}
-              </div>
-              <div style={{ display: currentView === 'analysisHistory' ? 'block' : 'none' }}>
-                {visitedViews.has('analysisHistory') && <AnalysisHistory />}
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { TrendingUp, MessageSquare, Settings, ChevronDown, Filter, Brain, History, Star, Trophy } from 'lucide-react';
+import { TrendingUp, MessageSquare, Settings, ChevronDown, Filter, Brain, Star, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 interface SidebarProps {
@@ -14,11 +14,10 @@ interface SidebarProps {
   onSettingsClick?: () => void;
   onAIAnalysisClick?: () => void;
   onLongTigerClick?: () => void;
-  onAnalysisHistoryClick?: () => void;
   currentView?: string;
 }
 
-export function Sidebar({ compactLayout, isOpen, onClose, onDashboardClick, onWatchlistClick, onAboutClick, onMoneyFlowClick, onStockFilterClick, onSettingsClick, onAIAnalysisClick, onLongTigerClick, onAnalysisHistoryClick, currentView }: SidebarProps) {
+export function Sidebar({ compactLayout, isOpen, onClose, onDashboardClick, onWatchlistClick, onAboutClick, onMoneyFlowClick, onStockFilterClick, onSettingsClick, onAIAnalysisClick, onLongTigerClick, currentView }: SidebarProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>('行情中心');
 
   const menuItems = [
@@ -50,12 +49,6 @@ export function Sidebar({ compactLayout, isOpen, onClose, onDashboardClick, onWa
       icon: Brain,
       label: 'AI股票分析',
       view: 'aianalysis' as const,
-      submenu: []
-    },
-    {
-      icon: History,
-      label: '分析历史',
-      view: 'analysisHistory' as const,
       submenu: []
     }
   ];
@@ -110,8 +103,6 @@ export function Sidebar({ compactLayout, isOpen, onClose, onDashboardClick, onWa
                     onLongTigerClick?.();
                   } else if (item.label === 'AI股票分析') {
                     onAIAnalysisClick?.();
-                  } else if (item.label === '分析历史') {
-                    onAnalysisHistoryClick?.();
                   }
                 }}
                 className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-all group ${

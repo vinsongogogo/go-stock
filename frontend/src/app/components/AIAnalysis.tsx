@@ -19,6 +19,7 @@ import {
   Star,
   Zap
 } from 'lucide-react';
+import AnalysisHistory from './AnalysisHistory';
 import { 
   GetAiConfigs, 
   NewChatStream, 
@@ -327,6 +328,7 @@ export function AIAnalysis() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
+  const [activeTab, setActiveTab] = useState<'analysis' | 'history'>('analysis');
 
   // Refs
   const analyzingStocksRef = useRef<Set<string>>(new Set());
@@ -971,126 +973,158 @@ export function AIAnalysis() {
         </div>
       </div>
 
-      {/* 工具栏 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* AI模型选择 */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">AI模型：</span>
-            {aiConfigs.length > 0 ? (
-              <div className="relative">
-                <select
-                  value={selectedAiConfigId}
-                  onChange={(e) => setSelectedAiConfigId(Number(e.target.value))}
-                  disabled={hasAnyAnalyzing}
-                  className="appearance-none bg-slate-800/60 border border-white/10 rounded-lg px-3 py-1.5 pr-8 text-sm text-gray-300 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
-                >
-                  {aiConfigs.map((config) => (
-                    <option key={config.ID} value={config.ID}>
-                      {config.name || `模型 ${config.ID}`}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+      {/* Tab 切换 */}
+      <div className="flex gap-1 bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-1 shadow-2xl">
+        <button
+          onClick={() => setActiveTab('analysis')}
+          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'analysis'
+              ? 'bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white border border-white/10'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+          }`}
+        >
+          实时分析
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'history'
+              ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-white border border-white/10'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+          }`}
+        >
+          历史记录
+        </button>
+      </div>
+
+      {activeTab === 'analysis' && (
+        <>
+          {/* 工具栏 */}
+          <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* AI模型选择 */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">AI模型：</span>
+                {aiConfigs.length > 0 ? (
+                  <div className="relative">
+                    <select
+                      value={selectedAiConfigId}
+                      onChange={(e) => setSelectedAiConfigId(Number(e.target.value))}
+                      disabled={hasAnyAnalyzing}
+                      className="appearance-none bg-slate-800/60 border border-white/10 rounded-lg px-3 py-1.5 pr-8 text-sm text-gray-300 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
+                    >
+                      {aiConfigs.map((config) => (
+                        <option key={config.ID} value={config.ID}>
+                          {config.name || `模型 ${config.ID}`}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
+                ) : (
+                  <span className="text-xs text-yellow-400">未配置</span>
+                )}
               </div>
-            ) : (
-              <span className="text-xs text-yellow-400">未配置</span>
-            )}
-          </div>
 
-          {/* 分隔线 */}
-          <div className="h-6 w-px bg-white/10"></div>
+              {/* 分隔线 */}
+              <div className="h-6 w-px bg-white/10"></div>
 
-          {/* 股票搜索输入 */}
-          <div className="flex-1 flex gap-2">
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                value={stockInput}
-                onChange={(e) => setStockInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleInputAnalysis()}
-                placeholder="输入股票代码，如 600519"
-                disabled={hasAnyAnalyzing}
-                className="w-full bg-slate-800/60 border border-white/10 rounded-lg pl-10 pr-4 py-1.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
-              />
+              {/* 股票搜索输入 */}
+              <div className="flex-1 flex gap-2">
+                <div className="relative flex-1 max-w-xs">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={stockInput}
+                    onChange={(e) => setStockInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleInputAnalysis()}
+                    placeholder="输入股票代码，如 600519"
+                    disabled={hasAnyAnalyzing}
+                    className="w-full bg-slate-800/60 border border-white/10 rounded-lg pl-10 pr-4 py-1.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
+                  />
+                </div>
+                <button
+                  onClick={handleInputAnalysis}
+                  disabled={!stockInput.trim() || aiConfigs.length === 0 || hasAnyAnalyzing}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20"
+                >
+                  <Play className="w-4 h-4" />
+                  分析
+                </button>
+              </div>
+
+              {/* 分隔线 */}
+              <div className="h-6 w-px bg-white/10"></div>
+
+              {/* 一键分析全部 */}
+              <button
+                onClick={analyzeAll}
+                disabled={stockAnalysisList.length === 0 || aiConfigs.length === 0 || hasAnyAnalyzing || isAnalyzingAll}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
+              >
+                {isAnalyzingAll ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    分析中...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    一键分析全部
+                  </>
+                )}
+              </button>
             </div>
-            <button
-              onClick={handleInputAnalysis}
-              disabled={!stockInput.trim() || aiConfigs.length === 0 || hasAnyAnalyzing}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20"
-            >
-              <Play className="w-4 h-4" />
-              分析
-            </button>
           </div>
 
-          {/* 分隔线 */}
-          <div className="h-6 w-px bg-white/10"></div>
+          {/* 错误提示 */}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-red-400">{error}</p>
+                {error.includes('AI 模型') && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    请前往「系统设置」→「AI 设置」配置 AI 模型后再进行分析
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
-          {/* 一键分析全部 */}
-          <button
-            onClick={analyzeAll}
-            disabled={stockAnalysisList.length === 0 || aiConfigs.length === 0 || hasAnyAnalyzing || isAnalyzingAll}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
-          >
-            {isAnalyzingAll ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                分析中...
-              </>
-            ) : (
-              <>
-                <Zap className="w-4 h-4" />
-                一键分析全部
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+          {/* 股票卡片列表 */}
+          {stockAnalysisList.length > 0 ? (
+            <div className="space-y-4">
+              {stockAnalysisList.map(stock => renderStockCard(stock))}
+            </div>
+          ) : (
+            <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-8 shadow-2xl">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4">
+                  <Brain className="w-10 h-10 text-cyan-400" />
+                </div>
+                <h3 className="text-lg text-white mb-2">暂无自选股</h3>
+                <p className="text-sm text-gray-400 max-w-md">
+                  请先在「自选列表」中添加股票，或在上方输入股票代码进行分析
+                </p>
+              </div>
+            </div>
+          )}
 
-      {/* 错误提示 */}
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm text-red-400">{error}</p>
-            {error.includes('AI 模型') && (
-              <p className="text-xs text-gray-400 mt-1">
-                请前往「系统设置」→「AI 设置」配置 AI 模型后再进行分析
-              </p>
-            )}
+          {/* 免责声明 */}
+          <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+            <div className="text-xs text-gray-400 space-y-1">
+              <p>• AI 分析基于多维度数据，包含技术面、基本面、资金面、市场情绪等指标</p>
+              <p>• 分析结果由 AI 模型生成，仅供参考，不构成投资建议</p>
+              <p>• 投资有风险，入市需谨慎，请结合实际情况做出决策</p>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
-      {/* 股票卡片列表 */}
-      {stockAnalysisList.length > 0 ? (
-        <div className="space-y-4">
-          {stockAnalysisList.map(stock => renderStockCard(stock))}
-        </div>
-      ) : (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-8 shadow-2xl">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4">
-              <Brain className="w-10 h-10 text-cyan-400" />
-            </div>
-            <h3 className="text-lg text-white mb-2">暂无自选股</h3>
-            <p className="text-sm text-gray-400 max-w-md">
-              请先在「自选列表」中添加股票，或在上方输入股票代码进行分析
-            </p>
-          </div>
-        </div>
+      {activeTab === 'history' && (
+        <AnalysisHistory embedded />
       )}
-
-      {/* 免责声明 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
-        <div className="text-xs text-gray-400 space-y-1">
-          <p>• AI 分析基于多维度数据，包含技术面、基本面、资金面、市场情绪等指标</p>
-          <p>• 分析结果由 AI 模型生成，仅供参考，不构成投资建议</p>
-          <p>• 投资有风险，入市需谨慎，请结合实际情况做出决策</p>
-        </div>
-      </div>
 
       {/* CSS 动画 */}
       <style>{`

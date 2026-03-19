@@ -1420,6 +1420,37 @@ func (a *App) GlobalStockIndexes() map[string]any {
 	return data.NewMarketNewsApi().GlobalStockIndexes(30)
 }
 
+// GetMarketSentimentScore 获取多维度市场情绪评分
+func (a *App) GetMarketSentimentScore() map[string]any {
+	return data.NewMarketNewsApi().GetMarketSentimentMultiDimensional()
+}
+
+// GetMarketEvents 获取日内市场事件时间轴
+func (a *App) GetMarketEvents() []map[string]any {
+	return data.NewMarketNewsApi().GetMarketEvents()
+}
+
+// GetHotWords 获取24H热词
+func (a *App) GetHotWords() []map[string]any {
+	return data.NewMarketNewsApi().GetHotWords()
+}
+
+// GetIndustryHeatMap 获取行业热力图整合数据
+func (a *App) GetIndustryHeatMap() map[string]any {
+	return data.NewMarketNewsApi().GetIndustryHeatMap()
+}
+
+// FetchTushareNews 获取 Tushare 财经快讯
+func (a *App) FetchTushareNews(src string) string {
+	config := data.GetSettingConfig()
+	api := data.NewTushareApi(config)
+	_, err := api.GetNews(src, "", "")
+	if err != nil {
+		return fmt.Sprintf("获取失败: %v", err)
+	}
+	return "获取成功"
+}
+
 func (a *App) SummaryStockNews(question string, aiConfigId int, sysPromptId *int, enableTools bool, think bool, eventName string, historyJSON string) {
 	ctx, cancel := context.WithCancel(a.ctx)
 
