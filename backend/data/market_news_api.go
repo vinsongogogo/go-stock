@@ -1256,7 +1256,7 @@ func (m MarketNewsApi) crawlLimitUpDownData() *LimitUpDownData {
 		"filter":      fmt.Sprintf("(TRADE_DATE='%s')", time.Now().Format("2006-01-02")),
 	}
 
-	resp, err := resty.New().SetTimeout(10*time.Second).R().
+	resp, err := resty.New().SetTimeout(10 * time.Second).R().
 		SetQueryParams(params).
 		Get(url)
 	if err != nil {
@@ -1269,7 +1269,7 @@ func (m MarketNewsApi) crawlLimitUpDownData() *LimitUpDownData {
 
 	// 跌停池
 	params["reportName"] = "RPT_LIMITER_POOL_DOWN"
-	resp2, err := resty.New().SetTimeout(10*time.Second).R().
+	resp2, err := resty.New().SetTimeout(10 * time.Second).R().
 		SetQueryParams(params).
 		Get(url)
 	if err != nil {
@@ -1297,10 +1297,10 @@ func (m MarketNewsApi) crawlUpDownCountData() *UpDownCountData {
 		"invt":   "2",
 		"fid":    "f3",
 		"fs":     "m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23", // A股
-		"fields": "f3",                                 // 涨跌幅
+		"fields": "f3",                                // 涨跌幅
 	}
 
-	resp, err := resty.New().SetTimeout(10*time.Second).R().
+	resp, err := resty.New().SetTimeout(10 * time.Second).R().
 		SetQueryParams(params).
 		Get(url)
 	if err != nil {
@@ -1338,7 +1338,7 @@ func (m MarketNewsApi) crawlNorthFundData() *NorthFundData {
 		"fields2": "f51,f52,f53,f54,f55,f56",
 	}
 
-	resp, err := resty.New().SetTimeout(10*time.Second).R().
+	resp, err := resty.New().SetTimeout(10 * time.Second).R().
 		SetQueryParams(params).
 		Get(url)
 	if err != nil {
