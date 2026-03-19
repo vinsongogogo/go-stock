@@ -1,7 +1,9 @@
-import { TrendingUp, BarChart3, LineChart, Activity, Building2, Globe, FileText, Code, MessageSquare, Settings, ChevronDown, Filter, Brain } from 'lucide-react';
+import { TrendingUp, MessageSquare, Settings, ChevronDown, Filter, Brain, History, Star, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 interface SidebarProps {
+  /** true：抽屉式侧边栏；false：常驻桌面侧栏 */
+  compactLayout: boolean;
   isOpen: boolean;
   onClose: () => void;
   onDashboardClick?: () => void;
@@ -11,15 +13,17 @@ interface SidebarProps {
   onStockFilterClick?: () => void;
   onSettingsClick?: () => void;
   onAIAnalysisClick?: () => void;
+  onLongTigerClick?: () => void;
+  onAnalysisHistoryClick?: () => void;
   currentView?: string;
 }
 
-export function Sidebar({ isOpen, onClose, onDashboardClick, onWatchlistClick, onAboutClick, onMoneyFlowClick, onStockFilterClick, onSettingsClick, onAIAnalysisClick, currentView }: SidebarProps) {
+export function Sidebar({ compactLayout, isOpen, onClose, onDashboardClick, onWatchlistClick, onAboutClick, onMoneyFlowClick, onStockFilterClick, onSettingsClick, onAIAnalysisClick, onLongTigerClick, onAnalysisHistoryClick, currentView }: SidebarProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>('行情中心');
 
   const menuItems = [
     {
-      icon: TrendingUp,
+      icon: Star,
       label: '自选列表',
       view: 'watchlist',
       submenu: []
@@ -31,85 +35,41 @@ export function Sidebar({ isOpen, onClose, onDashboardClick, onWatchlistClick, o
       submenu: []
     },
     {
-      icon: BarChart3,
-      label: '指数',
-      view: '',
-      submenu: []
-    },
-    {
-      icon: LineChart,
-      label: '核心指数',
-      view: '',
-      submenu: []
-    },
-    {
-      icon: Activity,
-      label: '行业榜',
-      view: '',
-      submenu: []
-    },
-    {
-      icon: Globe,
-      label: '资金流向',
-      view: 'moneyflow',
-      submenu: []
-    },
-    {
-      icon: Building2,
-      label: '龙虎榜',
-      view: '',
-      submenu: []
-    },
-    {
-      icon: FileText,
-      label: '研报',
-      view: '',
-      submenu: []
-    },
-    {
-      icon: Code,
-      label: '公告',
-      view: '',
-      submenu: []
-    },
-    {
       icon: Filter,
       label: '股票筛选',
       view: 'stockfilter',
       submenu: []
     },
     {
-      icon: MessageSquare,
-      label: '行业研究',
-      view: '',
+      icon: Trophy,
+      label: '龙虎榜',
+      view: 'longtiger',
       submenu: []
     },
     {
-      icon: FileText,
-      label: '热门',
-      view: '',
+      icon: Brain,
+      label: 'AI股票分析',
+      view: 'aianalysis' as const,
       submenu: []
     },
     {
-      icon: Activity,
-      label: '选股',
-      view: '',
-      submenu: []
-    },
-    {
-      icon: BarChart3,
-      label: '精选',
-      view: '',
+      icon: History,
+      label: '分析历史',
+      view: 'analysisHistory' as const,
       submenu: []
     }
   ];
 
+  // PC（非 compact）：侧栏参与 flex 流、始终可见；移动：fixed 抽屉，默认收起
+  const offscreen = compactLayout && !isOpen;
+
   return (
     <div className={`
-      w-64 bg-slate-900/50 backdrop-blur-xl border-r border-white/10 flex flex-col
-      fixed lg:static top-0 bottom-0 left-0 z-50
+      w-64 shrink-0 min-h-0 bg-slate-900/50 backdrop-blur-xl border-r border-white/10 flex flex-col
+      top-0 bottom-0 left-0 z-50
+      ${compactLayout ? 'fixed' : 'static'}
       transform transition-transform duration-300 ease-in-out
-      ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      ${offscreen ? '-translate-x-full' : 'translate-x-0'}
     `}>
       {/* 头部 Logo */}
       <div className="p-6 border-b border-white/10">
@@ -146,6 +106,12 @@ export function Sidebar({ isOpen, onClose, onDashboardClick, onWatchlistClick, o
                     onMoneyFlowClick?.();
                   } else if (item.label === '股票筛选') {
                     onStockFilterClick?.();
+                  } else if (item.label === '龙虎榜') {
+                    onLongTigerClick?.();
+                  } else if (item.label === 'AI股票分析') {
+                    onAIAnalysisClick?.();
+                  } else if (item.label === '分析历史') {
+                    onAnalysisHistoryClick?.();
                   }
                 }}
                 className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-all group ${
@@ -183,15 +149,6 @@ export function Sidebar({ isOpen, onClose, onDashboardClick, onWatchlistClick, o
 
       {/* 底部 */}
       <div className="p-4 border-t border-white/10 space-y-2">
-        <button className="w-full px-4 py-2 flex items-center gap-3 hover:bg-white/5 rounded-lg transition-all">
-          <BarChart3 className="w-5 h-5 text-gray-400" />
-          <span className="text-sm">研究</span>
-          <ChevronDown className="w-4 h-4 text-gray-400 ml-auto" />
-        </button>
-        <button className="w-full px-4 py-2 flex items-center gap-3 hover:bg-white/5 rounded-lg transition-all">
-          <Settings className="w-5 h-5 text-gray-400" />
-          <span className="text-sm">宿舍设置</span>
-        </button>
         <button 
           onClick={onSettingsClick}
           className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-white/5 rounded-lg transition-all ${
@@ -209,24 +166,6 @@ export function Sidebar({ isOpen, onClose, onDashboardClick, onWatchlistClick, o
         >
           <MessageSquare className={`w-5 h-5 ${currentView === 'about' ? 'text-cyan-400' : 'text-gray-400'}`} />
           <span className={`text-sm ${currentView === 'about' ? 'text-cyan-400' : ''}`}>关于我们</span>
-        </button>
-        <button 
-          onClick={onStockFilterClick}
-          className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-white/5 rounded-lg transition-all ${
-            currentView === 'stockfilter' ? 'bg-white/10' : ''
-          }`}
-        >
-          <Filter className={`w-5 h-5 ${currentView === 'stockfilter' ? 'text-cyan-400' : 'text-gray-400'}`} />
-          <span className={`text-sm ${currentView === 'stockfilter' ? 'text-cyan-400' : ''}`}>股票筛选</span>
-        </button>
-        <button 
-          onClick={onAIAnalysisClick}
-          className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-white/5 rounded-lg transition-all ${
-            currentView === 'aianalysis' ? 'bg-white/10' : ''
-          }`}
-        >
-          <Brain className={`w-5 h-5 ${currentView === 'aianalysis' ? 'text-cyan-400' : 'text-gray-400'}`} />
-          <span className={`text-sm ${currentView === 'aianalysis' ? 'text-cyan-400' : ''}`}>AI股票分析</span>
         </button>
         <div className="pt-2 text-xs text-gray-500 text-center">
           隐藏到托盘区

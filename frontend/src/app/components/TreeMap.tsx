@@ -23,9 +23,9 @@ export function TreeMap() {
 
   return (
     <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 shadow-2xl hover:border-cyan-500/30 transition-all h-full">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 h-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 h-full">
         {/* 左侧：行业热力 */}
-        <div className="lg:col-span-2">
+        <div className="md:col-span-2">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <h3 className="text-sm text-cyan-400 tracking-wide flex items-center gap-2">
               <Flame className="w-4 h-4" />
@@ -84,7 +84,7 @@ export function TreeMap() {
         </div>
 
         {/* 右侧：24小时热词 */}
-        <div className="lg:border-l lg:border-white/10 lg:pl-3 xl:pl-4">
+        <div className="md:border-l md:border-white/10 md:pl-3 xl:pl-4">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <h3 className="text-sm text-cyan-400 tracking-wide flex items-center gap-2">
               <Zap className="w-4 h-4" />

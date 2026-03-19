@@ -126,6 +126,13 @@ func main() {
 		//height = 768
 	}
 
+	// 确保窗口尺寸满足桌面布局要求（Tailwind lg: 断点需要 1024px）
+	minWidth = max(minWidth, 1024)
+	minHeight = max(minHeight, 768)
+	if width*4/5 < 1280 {
+		width = 1280 * 5 / 4 // 确保 width*4/5 >= 1280
+	}
+
 	darkTheme := data.GetSettingConfig().DarkTheme
 	backgroundColour := &options.RGBA{R: 255, G: 255, B: 255, A: 1}
 	if darkTheme {

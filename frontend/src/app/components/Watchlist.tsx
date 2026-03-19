@@ -322,7 +322,7 @@ export function Watchlist() {
       </div>
 
       {/* 股票列表 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
         {displayList.map((stock) => (
           <div
             key={stock.code}

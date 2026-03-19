@@ -22,7 +22,7 @@ export function AboutUs() {
       </div>
 
       {/* 核心特性 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl hover:border-cyan-500/30 transition-all group">
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
             <Zap className="w-6 h-6 text-cyan-400" />
@@ -110,7 +110,7 @@ export function AboutUs() {
       {/* 技术栈 */}
       <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 sm:p-6 shadow-2xl">
         <h3 className="text-lg text-white font-light mb-4">技术架构</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { name: 'React', color: 'cyan' },
             { name: 'TypeScript', color: 'blue' },

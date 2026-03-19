@@ -249,7 +249,7 @@ export function StockFilter() {
             <BarChart2 className="w-4 h-4 text-cyan-400" />
             <h3 className="text-sm text-gray-300">技术指标筛选</h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
             {TECHNICAL_CHECKBOXES.map(({ label, key }) => (
               <label
                 key={key}
