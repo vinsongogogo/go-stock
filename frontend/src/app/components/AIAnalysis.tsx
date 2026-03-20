@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  Brain, 
-  Search, 
-  Play, 
-  Square, 
-  RefreshCw, 
-  Clock, 
-  AlertCircle, 
+import {
+  Brain,
+  Search,
+  Play,
+  RefreshCw,
+  Clock,
+  AlertCircle,
   ChevronDown,
   ChevronUp,
   Loader2,
@@ -17,16 +16,19 @@ import {
   Shield,
   Target,
   Star,
-  Zap
+  Zap,
+  Filter,
+  FileText
 } from 'lucide-react';
-import AnalysisHistory from './AnalysisHistory';
-import { 
-  GetAiConfigs, 
-  NewChatStream, 
-  SaveAIResponseResult, 
-  GetAIResponseResult, 
+import { ScoreGauge, DashboardCard, StrategyPoints } from './dashboard/index';
+import {
+  GetAiConfigs,
+  NewChatStream,
+  SaveAIResponseResult,
+  GetAIResponseResult,
   GetStockList,
-  GetFollowList
+  GetFollowList,
+  GetDashboardPromptID
 } from '../../../wailsjs/go/main/App';
 import { data, models } from '../../../wailsjs/go/models';
 
@@ -61,6 +63,107 @@ interface StructuredAnalysisData {
   };
 }
 
+// ============ 决策仪表盘数据结构 ============
+
+interface PositionAdvice {
+  no_position?: string;
+  has_position?: string;
+}
+
+interface CoreConclusion {
+  one_sentence?: string;
+  signal_type?: string;
+  time_sensitivity?: string;
+  position_advice?: PositionAdvice;
+}
+
+interface TrendStatus {
+  ma_alignment?: string;
+  is_bullish?: boolean;
+  trend_score?: number;
+}
+
+interface PricePosition {
+  current_price?: number;
+  ma5?: number;
+  ma10?: number;
+  ma20?: number;
+  bias_ma5?: number;
+  bias_status?: string;
+  support_level?: number;
+  resistance_level?: number;
+}
+
+interface VolumeAnalysis {
+  volume_ratio?: number;
+  volume_status?: string;
+  turnover_rate?: number;
+  volume_meaning?: string;
+}
+
+interface ChipStructure {
+  profit_ratio?: number;
+  avg_cost?: number;
+  concentration?: number;
+  chip_health?: string;
+}
+
+interface DataPerspective {
+  trend_status?: TrendStatus;
+  price_position?: PricePosition;
+  volume_analysis?: VolumeAnalysis;
+  chip_structure?: ChipStructure;
+}
+
+interface Intelligence {
+  latest_news?: string;
+  risk_alerts?: string[];
+  positive_catalysts?: string[];
+  earnings_outlook?: string;
+  sentiment_summary?: string;
+}
+
+interface SniperPoints {
+  ideal_buy?: number | string;
+  secondary_buy?: number | string;
+  stop_loss?: number | string;
+  take_profit?: number | string;
+}
+
+interface PositionStrategy {
+  suggested_position?: string;
+  entry_plan?: string;
+  risk_control?: string;
+}
+
+interface BattlePlan {
+  sniper_points?: SniperPoints;
+  position_strategy?: PositionStrategy;
+  action_checklist?: string[];
+}
+
+interface DashboardView {
+  core_conclusion?: CoreConclusion;
+  data_perspective?: DataPerspective;
+  intelligence?: Intelligence;
+  battle_plan?: BattlePlan;
+}
+
+interface DashboardData {
+  stock_name?: string;
+  sentiment_score?: number;
+  sentiment_label?: string;
+  trend_prediction?: string;
+  operation_advice?: string;
+  decision_type?: 'buy' | 'hold' | 'sell';
+  confidence_level?: string;
+  dashboard?: DashboardView;
+  analysis_summary?: string;
+  key_points?: string;
+  risk_warning?: string;
+  buy_reason?: string;
+}
+
 type AnalysisPhase = 'idle' | 'collecting' | 'analyzing' | 'generating' | 'completed' | 'aborted' | 'timeout' | 'error';
 
 interface StockAnalysisState {
@@ -70,6 +173,7 @@ interface StockAnalysisState {
   phase: AnalysisPhase;
   content: string;
   structuredData: StructuredAnalysisData | null;
+  dashboardData: DashboardData | null;
   markdownContent: string;
   historyResult: models.AIResponseResult | null;
   showDetail: boolean;
@@ -166,6 +270,61 @@ function parseStructuredData(content: string): {
 }
 
 // =====================
+// 仪表盘数据解析
+// =====================
+function parseDashboardData(content: string): {
+  dashboardData: DashboardData | null;
+  rawContent: string;
+} {
+  if (!content) {
+    return { dashboardData: null, rawContent: content };
+  }
+
+  let jsonStr = content;
+
+  // 方式1：提取 ```json ``` 代码块
+  const jsonBlockRegex = /```json\s*([\s\S]*?)```/;
+  const blockMatch = content.match(jsonBlockRegex);
+  if (blockMatch) {
+    jsonStr = blockMatch[1].trim();
+  } else {
+    // 方式2：直接查找 JSON 对象
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}');
+    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+      jsonStr = content.substring(jsonStart, jsonEnd + 1);
+    }
+  }
+
+  try {
+    // 修复常见 JSON 问题
+    jsonStr = jsonStr
+      .replace(/,\s*}/g, '}')
+      .replace(/,\s*]/g, ']')
+      .replace(/True/g, 'true')
+      .replace(/False/g, 'false');
+
+    const parsed = JSON.parse(jsonStr);
+
+    // 验证是否为有效的仪表盘数据
+    if (
+      typeof parsed.sentiment_score === 'number' &&
+      parsed.dashboard &&
+      typeof parsed.dashboard === 'object'
+    ) {
+      return {
+        dashboardData: parsed as DashboardData,
+        rawContent: content,
+      };
+    }
+  } catch {
+    // JSON 解析失败
+  }
+
+  return { dashboardData: null, rawContent: content };
+}
+
+// =====================
 // Markdown 渲染函数
 // =====================
 function renderMarkdown(text: string): string {
@@ -253,68 +412,20 @@ function parseContentSections(text: string): ContentSection[] {
 // 构造分析问题（新版带JSON引导）
 // =====================
 const buildAnalysisQuestion = (stockName: string, stockCode: string): string => {
-  return `请对 ${stockName}(${stockCode}) 进行全面深度分析。
+  return `请对 ${stockName}(${stockCode}) 进行全面深度分析，输出完整的决策仪表盘 JSON。
 
-【重要】请严格按以下格式输出分析结果：
-
-第一部分：请先输出一个 JSON 代码块，包含结构化评估数据，格式如下：
-\`\`\`json
-{
-  "overallScore": 78,
-  "recommendation": "买入",
-  "technicalScore": 53,
-  "fundamentalScore": 74,
-  "capitalScore": 78,
-  "riskLevel": "低风险",
-  "aiInsight": "一句话综合分析摘要，不超过100字",
-  "targetPrice": {
-    "pessimistic": 63.21,
-    "neutral": 108.45,
-    "optimistic": 97.07
-  }
-}
-\`\`\`
-
-字段说明：
-- overallScore：综合评分，0-100 整数
-- recommendation：推荐等级，只能是以下之一：强烈买入、买入、持有、卖出、强烈卖出
-- technicalScore：技术面评分，0-100 整数
-- fundamentalScore：基本面评分，0-100 整数
-- capitalScore：资金面评分，0-100 整数
-- riskLevel：风险等级，只能是以下之一：低风险、中风险、高风险
-- aiInsight：AI 智能洞察摘要，一句话概括分析结论
-- targetPrice：目标价位预测，pessimistic(悲观)、neutral(中性)、optimistic(乐观)，保留两位小数
-
-第二部分：在 JSON 代码块之后，请基于系统提供的实时数据，输出详细的 Markdown 格式分析报告，包含以下章节：
-
-## 技术面分析
-分析MACD、RSI、KDJ、均线系统等技术指标的走势和信号
-
-## 基本面分析
-分析市盈率、市净率、ROE等核心财务指标
-
-## 资金流向分析
-分析主力资金、散户资金动向
-
-## 市场情绪分析
-近期新闻舆论导向和市场情绪
-
-## 行业对比分析
-在所属行业中的竞争地位和相对估值
-
-## 财报深度解读
-最新财报关键数据及同比变化
-
-## 风险评估与投资建议
-综合风险评估和具体操作建议
-
-请基于提供的数据进行分析，不要编造不存在的数据。所有评分和目标价必须基于实际分析给出合理数值。`;
+请基于系统提供的实时行情数据、K线数据、财务数据、新闻资讯等进行分析，严格按照系统提示中要求的 JSON 格式输出。所有评分和价格必须基于实际数据给出合理数值，不要编造不存在的数据。`;
 };
 
 // =====================
 // 主组件
 // =====================
-export function AIAnalysis() {
+interface AIAnalysisProps {
+  pendingStock?: { code: string; name: string } | null;
+  onPendingStockConsumed?: () => void;
+}
+
+export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisProps = {}) {
   // 股票分析列表状态
   const [stockAnalysisList, setStockAnalysisList] = useState<StockAnalysisState[]>([]);
   const [stockInput, setStockInput] = useState('');
@@ -323,12 +434,15 @@ export function AIAnalysis() {
   const [watchlist, setWatchlist] = useState<data.StockBasic[]>([]);
   const [aiConfigs, setAiConfigs] = useState<data.AIConfig[]>([]);
   const [selectedAiConfigId, setSelectedAiConfigId] = useState<number>(0);
+  const [dashboardPromptId, setDashboardPromptId] = useState<number | null>(null);
 
   // UI 状态
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analysis' | 'history'>('analysis');
+  const [selectedStockCode, setSelectedStockCode] = useState<string | null>(null);
+  const [filterText, setFilterText] = useState('');
+  const [showLogStockCode, setShowLogStockCode] = useState<string | null>(null);
 
   // Refs
   const analyzingStocksRef = useRef<Set<string>>(new Set());
@@ -353,10 +467,15 @@ export function AIAnalysis() {
         setLoading(true);
         setError(null);
 
-        const [configs, followedStocks] = await Promise.all([
+        const [configs, followedStocks, promptId] = await Promise.all([
           GetAiConfigs(),
-          GetFollowList(0)
+          GetFollowList(0),
+          GetDashboardPromptID().catch(() => 0)
         ]);
+
+        if (promptId) {
+          setDashboardPromptId(promptId);
+        }
 
         setAiConfigs(configs || []);
 
@@ -383,6 +502,7 @@ export function AIAnalysis() {
           phase: 'idle' as AnalysisPhase,
           content: '',
           structuredData: null,
+          dashboardData: null,
           markdownContent: '',
           historyResult: null,
           showDetail: false,
@@ -409,8 +529,10 @@ export function AIAnalysis() {
               try {
                 const result = await GetAIResponseResult(stock.ts_code);
                 if (result && result.content) {
+                  // 先尝试仪表盘解析，再尝试旧格式
+                  const { dashboardData } = parseDashboardData(result.content);
                   const { structured, markdown } = parseStructuredData(result.content);
-                  batchResults.set(stock.ts_code, { result, structured, markdown });
+                  batchResults.set(stock.ts_code, { result, structured, markdown, dashboardData });
                 }
               } catch {
                 // 忽略单个请求错误
@@ -422,16 +544,17 @@ export function AIAnalysis() {
             // 每批完成后批量更新状态
             if (batchResults.size > 0) {
               setStockAnalysisList(prev => prev.map(item => {
-                const data = batchResults.get(item.stockCode);
-                if (data) {
+                const batchData = batchResults.get(item.stockCode);
+                if (batchData) {
                   return {
                     ...item,
-                    historyResult: data.result,
-                    structuredData: data.structured,
-                    markdownContent: data.markdown,
-                    content: data.result.content,
-                    updatedAt: data.result.CreatedAt
-                      ? new Date(data.result.CreatedAt).toLocaleString('zh-CN')
+                    historyResult: batchData.result,
+                    structuredData: batchData.structured,
+                    dashboardData: batchData.dashboardData,
+                    markdownContent: batchData.markdown,
+                    content: batchData.result.content,
+                    updatedAt: batchData.result.CreatedAt
+                      ? new Date(batchData.result.CreatedAt).toLocaleString('zh-CN')
                       : '',
                     phase: 'completed' as AnalysisPhase,
                   };
@@ -462,6 +585,51 @@ export function AIAnalysis() {
   }, []);
 
   // =====================
+  // 自动选中第一只有数据的股票
+  // =====================
+  useEffect(() => {
+    if (selectedStockCode) return;
+    const firstWithData = stockAnalysisList.find(
+      s => !s.isAnalyzing && (s.dashboardData || s.structuredData || s.content)
+    );
+    if (firstWithData) {
+      setSelectedStockCode(firstWithData.stockCode);
+    }
+  }, [stockAnalysisList, selectedStockCode]);
+
+  // =====================
+  // 从自选列表跳转触发分析
+  // =====================
+  useEffect(() => {
+    if (!pendingStock || loading) return;
+
+    const { code, name } = pendingStock;
+    onPendingStockConsumed?.();
+
+    // 确保股票在列表中
+    const exists = stockAnalysisList.some(s => s.stockCode === code);
+    if (!exists) {
+      setStockAnalysisList(prev => [{
+        stockCode: code,
+        stockName: name,
+        isAnalyzing: false,
+        phase: 'idle' as AnalysisPhase,
+        content: '',
+        structuredData: null,
+        dashboardData: null,
+        markdownContent: '',
+        historyResult: null,
+        showDetail: false,
+        error: '',
+        updatedAt: '',
+      }, ...prev]);
+    }
+
+    setSelectedStockCode(code);
+    startSingleAnalysis(code, name);
+  }, [pendingStock, loading]);
+
+  // =====================
   // 单股票分析流程
   // =====================
   const startSingleAnalysis = useCallback(async (stockCode: string, stockName: string): Promise<void> => {
@@ -486,6 +654,7 @@ export function AIAnalysis() {
         phase: 'collecting',
         content: '',
         structuredData: null,
+        dashboardData: null,
         markdownContent: '',
         error: '',
         showDetail: false,
@@ -501,7 +670,7 @@ export function AIAnalysis() {
       const oldPhaseTimers = phaseTimerRefs.current.get(stockCode);
       if (oldPhaseTimers) oldPhaseTimers.forEach(t => clearTimeout(t));
 
-      // 超时保护
+      // 超时保护（5分钟）
       const timeoutId = setTimeout(() => {
         EventsOff(eventName);
         analyzingStocksRef.current.delete(stockCode);
@@ -511,7 +680,7 @@ export function AIAnalysis() {
           error: '分析超时，请检查网络或AI服务配置',
         });
         resolve();
-      }, 60000);
+      }, 3000000);
       timeoutRefs.current.set(stockCode, timeoutId);
 
       // 阶段推进定时器
@@ -535,16 +704,22 @@ export function AIAnalysis() {
           analyzingStocksRef.current.delete(stockCode);
 
           const finalContent = contentAccumulator.current;
+          // 先尝试仪表盘解析，再尝试旧格式
+          const { dashboardData: parsedDashboard } = parseDashboardData(finalContent);
           const { structured, markdown } = parseStructuredData(finalContent);
 
           updateStockAnalysis(stockCode, {
             isAnalyzing: false,
             phase: 'completed',
             content: finalContent,
+            dashboardData: parsedDashboard,
             structuredData: structured,
             markdownContent: markdown,
             updatedAt: new Date().toLocaleString('zh-CN'),
           });
+
+          // 分析完成后自动选中该股票
+          setSelectedStockCode(stockCode);
 
           SaveAIResponseResult(
             stockCode,
@@ -560,11 +735,8 @@ export function AIAnalysis() {
           if (msg.chatId) chatIdAccumulator.current = msg.chatId;
           if (msg.content) {
             contentAccumulator.current += msg.content;
-            const { structured, markdown } = parseStructuredData(contentAccumulator.current);
             updateStockAnalysis(stockCode, {
               content: contentAccumulator.current,
-              structuredData: structured,
-              markdownContent: markdown,
               phase: 'generating',
             });
           }
@@ -583,7 +755,7 @@ export function AIAnalysis() {
         stockCode,
         question,
         selectedAiConfigId,
-        null,
+        dashboardPromptId,
         true,
         false
       ).catch(err => {
@@ -600,7 +772,7 @@ export function AIAnalysis() {
         resolve();
       });
     });
-  }, [aiConfigs, selectedAiConfigId, updateStockAnalysis]);
+  }, [aiConfigs, selectedAiConfigId, dashboardPromptId, updateStockAnalysis]);
 
   // =====================
   // 一键分析全部（串行队列）
@@ -643,6 +815,7 @@ export function AIAnalysis() {
         phase: 'idle',
         content: '',
         structuredData: null,
+        dashboardData: null,
         markdownContent: '',
         historyResult: null,
         showDetail: false,
@@ -654,6 +827,72 @@ export function AIAnalysis() {
     startSingleAnalysis(formattedCode, formattedCode);
     setStockInput('');
   };
+
+  // =====================
+  // 刷新自选股列表
+  // =====================
+  const refreshFollowList = useCallback(async () => {
+    try {
+      const followedStocks = await GetFollowList(0);
+      const stocks = (followedStocks || []).map((fs: any) => ({
+        ts_code: fs.StockCode,
+        name: fs.Name || fs.StockCode,
+        symbol: '',
+        fullname: '',
+        market: '',
+        list_date: ''
+      }));
+      setWatchlist(stocks);
+
+      // 找出新增的股票（不在现有列表中的）
+      const existingCodes = new Set(stockAnalysisList.map(s => s.stockCode));
+      const newStocks = stocks.filter((s: any) => !existingCodes.has(s.ts_code));
+
+      if (newStocks.length > 0) {
+        const newStates: StockAnalysisState[] = newStocks.map((stock: any) => ({
+          stockCode: stock.ts_code,
+          stockName: stock.name || stock.ts_code,
+          isAnalyzing: false,
+          phase: 'idle' as AnalysisPhase,
+          content: '',
+          structuredData: null,
+          dashboardData: null,
+          markdownContent: '',
+          historyResult: null,
+          showDetail: false,
+          error: '',
+          updatedAt: '',
+        }));
+        setStockAnalysisList(prev => [...prev, ...newStates]);
+
+        // 为新增股票加载历史结果
+        for (const stock of newStocks) {
+          try {
+            const result = await GetAIResponseResult(stock.ts_code);
+            if (result && result.content) {
+              const { dashboardData } = parseDashboardData(result.content);
+              const { structured, markdown } = parseStructuredData(result.content);
+              updateStockAnalysis(stock.ts_code, {
+                historyResult: result,
+                structuredData: structured,
+                dashboardData: dashboardData,
+                markdownContent: markdown,
+                content: result.content,
+                updatedAt: result.CreatedAt
+                  ? new Date(result.CreatedAt).toLocaleString('zh-CN')
+                  : '',
+                phase: 'completed' as AnalysisPhase,
+              });
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+    } catch (err) {
+      console.error('刷新自选股失败:', err);
+    }
+  }, [stockAnalysisList, updateStockAnalysis]);
 
   // =====================
   // 切换详情展开
@@ -677,6 +916,228 @@ export function AIAnalysis() {
       </div>
     );
   }
+
+  // =====================
+  // 渲染决策仪表盘
+  // =====================
+  const renderDashboard = (stock: StockAnalysisState) => {
+    const { dashboardData } = stock;
+    if (!dashboardData) return null;
+
+    const dashboard = dashboardData.dashboard;
+    const coreConclusion = dashboard?.core_conclusion;
+    const dataPerspective = dashboard?.data_perspective;
+    const intelligence = dashboard?.intelligence;
+    const battlePlan = dashboard?.battle_plan;
+
+    const getAdviceStyle = (advice?: string) => {
+      const styles: Record<string, { bg: string; text: string; border: string }> = {
+        '买入': { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30' },
+        '加仓': { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30' },
+        '持有': { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30' },
+        '观望': { bg: 'bg-gray-500/20', text: 'text-gray-400', border: 'border-gray-500/30' },
+        '减仓': { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30' },
+        '卖出': { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
+      };
+      return styles[advice || ''] || styles['观望'];
+    };
+
+    const adviceStyle = getAdviceStyle(dashboardData.operation_advice);
+
+    return (
+      <div className="space-y-2">
+        {/* ========== 层1：头部区（股票信息+评分+结论+操作建议 合为一行） ========== */}
+        <DashboardCard variant="gradient" padding="sm">
+          <div className="flex items-start gap-4">
+            {/* 左侧：股票信息与核心结论 */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg font-bold text-white">
+                  {dashboardData.stock_name || stock.stockName}
+                </h3>
+                <span className="text-xs text-gray-500 font-mono">{stock.stockCode}</span>
+                <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${adviceStyle.bg} ${adviceStyle.text} border ${adviceStyle.border}`}>
+                  {dashboardData.operation_advice || '观望'}
+                </span>
+                {coreConclusion?.signal_type && (
+                  <span className="text-sm">{coreConclusion.signal_type}</span>
+                )}
+                {coreConclusion?.time_sensitivity && (
+                  <span className="text-xs text-gray-500">{coreConclusion.time_sensitivity}</span>
+                )}
+              </div>
+
+              {/* 核心结论 */}
+              {(coreConclusion?.one_sentence || dashboardData.analysis_summary) && (
+                <p className="mt-1 text-sm text-gray-300 leading-snug">
+                  {coreConclusion?.one_sentence || dashboardData.analysis_summary}
+                </p>
+              )}
+
+              {/* 操作建议 + 趋势 + 持仓建议 — 紧凑一行 */}
+              <div className="mt-1.5 flex items-center gap-3 flex-wrap text-xs">
+                <span className="text-gray-500">操作: <span className="text-gray-300">{dashboardData.operation_advice || '—'}</span></span>
+                <span className="text-gray-500">趋势: <span className="text-gray-300">{dashboardData.trend_prediction || '—'}</span></span>
+                {coreConclusion?.position_advice?.no_position && (
+                  <span className="text-blue-400/80">空仓: <span className="text-gray-400">{coreConclusion.position_advice.no_position}</span></span>
+                )}
+                {coreConclusion?.position_advice?.has_position && (
+                  <span className="text-purple-400/80">持仓: <span className="text-gray-400">{coreConclusion.position_advice.has_position}</span></span>
+                )}
+              </div>
+
+              <p className="text-xs text-gray-600 mt-1">{stock.updatedAt}</p>
+            </div>
+
+            {/* 右侧：情绪仪表盘（紧凑尺寸） */}
+            <div className="shrink-0">
+              <ScoreGauge
+                score={dashboardData.sentiment_score || 50}
+                size="sm"
+              />
+            </div>
+          </div>
+        </DashboardCard>
+
+        {/* ========== 层2：核心数据区（数据视角 + 狙击点位 横向并排） ========== */}
+        {(dataPerspective || battlePlan?.sniper_points) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            {/* 数据视角 */}
+            {dataPerspective && (
+              <DashboardCard variant="bordered" padding="sm">
+                <div className="grid grid-cols-2 gap-1.5">
+                  {dataPerspective.trend_status && (
+                    <div className="bg-slate-800/40 rounded p-2">
+                      <span className="text-xs text-gray-500">趋势</span>
+                      <p className={`text-xs font-medium ${dataPerspective.trend_status.is_bullish ? 'text-green-400' : 'text-red-400'}`}>
+                        {dataPerspective.trend_status.ma_alignment || '—'}
+                      </p>
+                      {dataPerspective.trend_status.trend_score !== undefined && (
+                        <div className="mt-1 h-1 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${dataPerspective.trend_status.trend_score}%`,
+                              backgroundColor: dataPerspective.trend_status.is_bullish ? '#22c55e' : '#ef4444',
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {dataPerspective.price_position && (
+                    <div className="bg-slate-800/40 rounded p-2">
+                      <span className="text-xs text-gray-500">价格</span>
+                      <p className="text-xs font-mono text-white">¥{dataPerspective.price_position.current_price}</p>
+                      <span className={`text-xs font-mono ${
+                        dataPerspective.price_position.bias_status === '安全' ? 'text-green-400' :
+                        dataPerspective.price_position.bias_status === '警戒' ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        乖离 {dataPerspective.price_position.bias_ma5 !== undefined ? `${dataPerspective.price_position.bias_ma5}%` : '—'}
+                      </span>
+                    </div>
+                  )}
+                  {dataPerspective.volume_analysis && (
+                    <div className="bg-slate-800/40 rounded p-2">
+                      <span className="text-xs text-gray-500">量能</span>
+                      <p className="text-xs font-medium text-white">{dataPerspective.volume_analysis.volume_status || '—'}</p>
+                      <span className="text-xs text-gray-500">
+                        量比{dataPerspective.volume_analysis.volume_ratio ?? '—'} 换手{dataPerspective.volume_analysis.turnover_rate !== undefined ? `${dataPerspective.volume_analysis.turnover_rate}%` : '—'}
+                      </span>
+                    </div>
+                  )}
+                  {dataPerspective.chip_structure && (
+                    <div className="bg-slate-800/40 rounded p-2">
+                      <span className="text-xs text-gray-500">筹码</span>
+                      <p className={`text-xs font-medium ${
+                        dataPerspective.chip_structure.chip_health === '健康' ? 'text-green-400' :
+                        dataPerspective.chip_structure.chip_health === '一般' ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        {dataPerspective.chip_structure.chip_health || '—'}
+                      </p>
+                      <span className="text-xs text-gray-500">
+                        获利{dataPerspective.chip_structure.profit_ratio !== undefined ? `${dataPerspective.chip_structure.profit_ratio}%` : '—'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </DashboardCard>
+            )}
+
+            {/* 狙击点位 */}
+            {battlePlan?.sniper_points && (
+              <DashboardCard variant="bordered" padding="sm">
+                <StrategyPoints points={battlePlan.sniper_points} />
+              </DashboardCard>
+            )}
+          </div>
+        )}
+
+        {/* ========== 层3：辅助信息区（小字紧凑） ========== */}
+        <DashboardCard variant="default" padding="sm">
+          <div className="space-y-1.5">
+            {/* 检查清单 — 单行紧凑 */}
+            {battlePlan?.action_checklist && battlePlan.action_checklist.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {battlePlan.action_checklist.map((item, i) => {
+                  const icon = item.startsWith('✅') ? '✅' : item.startsWith('⚠️') ? '⚠️' : item.startsWith('❌') ? '❌' : '•';
+                  const text = item.replace(/^[✅⚠️❌]\s*/, '');
+                  return (
+                    <span key={i} className="text-xs text-gray-400">{icon} {text}</span>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 仓位策略 — 单行 */}
+            {battlePlan?.position_strategy && (
+              <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                {battlePlan.position_strategy.suggested_position && (
+                  <span>仓位: <span className="text-gray-400">{battlePlan.position_strategy.suggested_position}</span></span>
+                )}
+                {battlePlan.position_strategy.entry_plan && (
+                  <span>建仓: <span className="text-gray-400">{battlePlan.position_strategy.entry_plan}</span></span>
+                )}
+                {battlePlan.position_strategy.risk_control && (
+                  <span>风控: <span className="text-gray-400">{battlePlan.position_strategy.risk_control}</span></span>
+                )}
+              </div>
+            )}
+
+            {/* 核心看点 / 操作理由 / 风险提示 — 小字 */}
+            {(dashboardData.key_points || dashboardData.buy_reason || dashboardData.risk_warning) && (
+              <div className="space-y-0.5 text-xs">
+                {dashboardData.key_points && (
+                  <p className="text-gray-400">{dashboardData.key_points}</p>
+                )}
+                {dashboardData.buy_reason && (
+                  <p className="text-gray-500"><span className="text-cyan-400/70">操作理由</span> {dashboardData.buy_reason}</p>
+                )}
+                {dashboardData.risk_warning && (
+                  <p className="text-gray-500"><span className="text-red-400/70">风险提示</span> {dashboardData.risk_warning}</p>
+                )}
+              </div>
+            )}
+
+            {/* 舆情情报 — 小字 */}
+            {intelligence && (intelligence.latest_news || (intelligence.risk_alerts && intelligence.risk_alerts.length > 0) || (intelligence.positive_catalysts && intelligence.positive_catalysts.length > 0)) && (
+              <div className="text-xs text-gray-500 space-y-0.5">
+                {intelligence.latest_news && (
+                  <p className="text-gray-400">{intelligence.latest_news}</p>
+                )}
+                {intelligence.risk_alerts && intelligence.risk_alerts.length > 0 && (
+                  <p><span className="text-red-400/70">风险:</span> {intelligence.risk_alerts.join(' · ')}</p>
+                )}
+                {intelligence.positive_catalysts && intelligence.positive_catalysts.length > 0 && (
+                  <p><span className="text-green-400/70">利好:</span> {intelligence.positive_catalysts.join(' · ')}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </DashboardCard>
+      </div>
+    );
+  };
 
   // =====================
   // 渲染结构化卡片
@@ -863,11 +1324,14 @@ export function AIAnalysis() {
           </div>
         )}
 
-        {/* 有结构化数据 */}
-        {!stock.isAnalyzing && stock.structuredData && renderStructuredCard(stock)}
+        {/* 有仪表盘数据 */}
+        {!stock.isAnalyzing && stock.dashboardData && renderDashboard(stock)}
+
+        {/* 有结构化数据（旧格式） */}
+        {!stock.isAnalyzing && !stock.dashboardData && stock.structuredData && renderStructuredCard(stock)}
 
         {/* 无结构化数据但有内容（Fallback） */}
-        {!stock.isAnalyzing && !stock.structuredData && stock.content && (
+        {!stock.isAnalyzing && !stock.dashboardData && !stock.structuredData && stock.content && (
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -883,7 +1347,7 @@ export function AIAnalysis() {
         )}
 
         {/* 空状态 */}
-        {!stock.isAnalyzing && !stock.content && !stock.error && (
+        {!stock.isAnalyzing && !stock.dashboardData && !stock.content && !stock.error && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-bold text-white">{stock.stockName}</h3>
@@ -894,7 +1358,7 @@ export function AIAnalysis() {
         )}
 
         {/* 展开详情按钮和重新分析按钮 */}
-        {!stock.isAnalyzing && (stock.content || stock.structuredData) && (
+        {!stock.isAnalyzing && (stock.content || stock.structuredData || stock.dashboardData) && (
           <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-white/5">
             <button
               onClick={() => toggleDetail(stock.stockCode)}
@@ -924,7 +1388,7 @@ export function AIAnalysis() {
         )}
 
         {/* 空状态时的分析按钮 */}
-        {!stock.isAnalyzing && !stock.content && !stock.error && (
+        {!stock.isAnalyzing && !stock.dashboardData && !stock.content && !stock.error && (
           <div className="flex justify-end mt-3">
             <button
               onClick={() => startSingleAnalysis(stock.stockCode, stock.stockName)}
@@ -949,182 +1413,485 @@ export function AIAnalysis() {
 
   const hasAnyAnalyzing = stockAnalysisList.some(s => s.isAnalyzing);
 
-  return (
-    <div className="space-y-4">
-      {/* 头部 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
-        <div className="flex items-center justify-between">
+  // 左栏列表数据
+  const analyzingStocks = stockAnalysisList.filter(s => s.isAnalyzing);
+  const completedStocks = stockAnalysisList
+    .filter(s => !s.isAnalyzing && (s.dashboardData || s.structuredData || s.content))
+    .sort((a, b) => {
+      if (!a.updatedAt && !b.updatedAt) return 0;
+      if (!a.updatedAt) return 1;
+      if (!b.updatedAt) return -1;
+      return b.updatedAt.localeCompare(a.updatedAt);
+    });
+  const idleStocks = stockAnalysisList.filter(
+    s => !s.isAnalyzing && !s.dashboardData && !s.structuredData && !s.content && !s.error
+  );
+
+  // 按 filterText 过滤
+  const filterFn = (s: StockAnalysisState) => {
+    if (!filterText) return true;
+    const q = filterText.toLowerCase();
+    return s.stockCode.toLowerCase().includes(q) || s.stockName.toLowerCase().includes(q);
+  };
+  const filteredAnalyzing = analyzingStocks.filter(filterFn);
+  const filteredCompleted = completedStocks.filter(filterFn);
+  const filteredIdle = idleStocks.filter(filterFn);
+
+  // 选中股票详情
+  const selectedStock = selectedStockCode
+    ? stockAnalysisList.find(s => s.stockCode === selectedStockCode) || null
+    : null;
+
+  // 获取评分
+  const getScore = (s: StockAnalysisState): number | null => {
+    if (s.dashboardData?.sentiment_score != null) return s.dashboardData.sentiment_score;
+    if (s.structuredData?.overallScore != null) return s.structuredData.overallScore;
+    return null;
+  };
+
+  // 评分颜色
+  const getScoreColor = (score: number): string => {
+    if (score >= 70) return 'text-green-400 bg-green-500/20 border-green-500/30';
+    if (score >= 40) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
+    return 'text-red-400 bg-red-500/20 border-red-500/30';
+  };
+
+  // 渲染 LLM 原始日志区域
+  const renderLogSection = (stock: StockAnalysisState) => {
+    if (!stock.content) return null;
+    const isLogVisible = showLogStockCode === stock.stockCode;
+
+    return (
+      <div className="pt-3 mt-3 border-t border-white/5">
+        <button
+          onClick={() => setShowLogStockCode(isLogVisible ? null : stock.stockCode)}
+          className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-400 transition-colors"
+        >
+          <FileText className="w-3 h-3" />
+          {isLogVisible ? '收起日志' : '查看日志'}
+          {isLogVisible ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
+        {isLogVisible && (
+          <div className="mt-2 bg-slate-950/60 rounded-lg border border-white/5 p-4 max-h-[500px] overflow-y-auto">
+            <pre className="text-xs text-gray-500 font-mono whitespace-pre-wrap break-words leading-relaxed">
+              {stock.content}
+            </pre>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 渲染右栏详情
+  const renderDetail = () => {
+    if (!selectedStock) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-center py-20">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4">
+            <Brain className="w-10 h-10 text-cyan-400" />
+          </div>
+          <h3 className="text-lg text-white mb-2">请在左侧选择股票</h3>
+          <p className="text-sm text-gray-400 max-w-md">
+            选择一只股票查看 AI 分析详情
+          </p>
+        </div>
+      );
+    }
+
+    // 正在分析中
+    if (selectedStock.isAnalyzing) {
+      return (
+        <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl text-white font-light">AI股票分析</h2>
-              <p className="text-xs text-gray-400">AI Stock Analysis · Intelligent Insights</p>
-            </div>
+            <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
+            <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
           </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-xs text-gray-400">分析股票数</p>
-              <p className="text-2xl font-bold text-purple-400">{stockAnalysisList.length}</p>
-            </div>
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+            <span className="text-sm text-gray-300">{phaseConfig[selectedStock.phase].text}</span>
           </div>
+          <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${phaseConfig[selectedStock.phase].color} transition-all duration-1000 ease-out`}
+              style={{ width: `${phaseConfig[selectedStock.phase].progress}%` }}
+            />
+          </div>
+          {/* 流式输出内容 */}
+          {selectedStock.content && (
+            <div className="mt-4 bg-slate-950/60 rounded-lg border border-white/5 p-4 max-h-[500px] overflow-y-auto">
+              <pre className="text-xs text-gray-400 font-mono whitespace-pre-wrap break-words leading-relaxed">
+                {selectedStock.content}
+              </pre>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 错误状态
+    if (selectedStock.error) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
+            <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
+          </div>
+          <div className="flex items-center gap-2 text-red-400">
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-sm">{selectedStock.error}</span>
+          </div>
+          <button
+            onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
+            disabled={hasAnyAnalyzing}
+            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className="w-4 h-4" />
+            重新分析
+          </button>
+        </div>
+      );
+    }
+
+    // 有仪表盘数据
+    if (selectedStock.dashboardData) {
+      return (
+        <div className="space-y-4">
+          {renderDashboard(selectedStock)}
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
+              disabled={hasAnyAnalyzing}
+              className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-sm text-cyan-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className="w-4 h-4" />
+              重新分析
+            </button>
+          </div>
+          {renderLogSection(selectedStock)}
+        </div>
+      );
+    }
+
+    // 有结构化数据（旧格式）
+    if (selectedStock.structuredData) {
+      return (
+        <div className="space-y-4">
+          {renderStructuredCard(selectedStock)}
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
+              disabled={hasAnyAnalyzing}
+              className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-sm text-cyan-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className="w-4 h-4" />
+              重新分析
+            </button>
+          </div>
+          {renderLogSection(selectedStock)}
+        </div>
+      );
+    }
+
+    // 有内容（纯 markdown fallback）
+    if (selectedStock.content) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 mb-4">
+            <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
+            <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
+            {selectedStock.updatedAt && (
+              <span className="text-xs text-gray-500">{selectedStock.updatedAt} 更新</span>
+            )}
+          </div>
+          {renderMarkdownSections(selectedStock.markdownContent || selectedStock.content)}
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
+              disabled={hasAnyAnalyzing}
+              className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-sm text-cyan-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className="w-4 h-4" />
+              重新分析
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // 空状态
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
+          <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
+        </div>
+        <p className="text-sm text-gray-500">暂无分析结果</p>
+        <button
+          onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
+          disabled={hasAnyAnalyzing}
+          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20"
+        >
+          <Play className="w-4 h-4" />
+          开始分析
+        </button>
+      </div>
+    );
+  };
+
+  // 渲染左栏列表项
+  const renderListItem = (stock: StockAnalysisState) => {
+    const isSelected = selectedStockCode === stock.stockCode;
+    const score = getScore(stock);
+
+    return (
+      <div
+        key={stock.stockCode}
+        onClick={() => setSelectedStockCode(stock.stockCode)}
+        className={`relative flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg transition-all ${
+          isSelected
+            ? 'bg-cyan-500/10 border border-cyan-500/30'
+            : 'hover:bg-white/5 border border-transparent'
+        }`}
+      >
+        {/* 选中指示条 */}
+        {isSelected && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-cyan-400 rounded-full" />
+        )}
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className={`text-sm font-medium truncate ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+              {stock.stockName}
+            </span>
+            {stock.isAnalyzing && (
+              <Loader2 className="w-3 h-3 text-cyan-400 animate-spin flex-shrink-0" />
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-xs text-gray-500 font-mono">{stock.stockCode}</span>
+            {stock.updatedAt && (
+              <span className="text-xs text-gray-600">{stock.updatedAt}</span>
+            )}
+          </div>
+        </div>
+
+        {/* 评分 badge */}
+        {score != null && (
+          <span className={`text-xs font-bold px-1.5 py-0.5 rounded border flex-shrink-0 ${getScoreColor(score)}`}>
+            {score}
+          </span>
+        )}
+
+        {/* 分析中标签 */}
+        {stock.isAnalyzing && !score && (
+          <span className="text-xs text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
+            分析中
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col h-full gap-3">
+      {/* 工具栏 */}
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-3 shadow-2xl flex-shrink-0">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* 标题 */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <Brain className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-sm font-medium text-white">AI分析</span>
+          </div>
+
+          <div className="h-6 w-px bg-white/10"></div>
+
+          {/* AI模型选择 */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">模型:</span>
+            {aiConfigs.length > 0 ? (
+              <div className="relative">
+                <select
+                  value={selectedAiConfigId}
+                  onChange={(e) => setSelectedAiConfigId(Number(e.target.value))}
+                  disabled={hasAnyAnalyzing}
+                  className="appearance-none bg-slate-800/60 border border-white/10 rounded-lg px-3 py-1.5 pr-8 text-sm text-gray-300 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
+                >
+                  {aiConfigs.map((config) => (
+                    <option key={config.ID} value={config.ID}>
+                      {config.name || `模型 ${config.ID}`}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            ) : (
+              <span className="text-xs text-yellow-400">未配置</span>
+            )}
+          </div>
+
+          <div className="h-6 w-px bg-white/10"></div>
+
+          {/* 股票搜索输入 */}
+          <div className="flex-1 flex gap-2">
+            <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={stockInput}
+                onChange={(e) => setStockInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleInputAnalysis()}
+                placeholder="输入股票代码，如 600519"
+                disabled={hasAnyAnalyzing}
+                className="w-full bg-slate-800/60 border border-white/10 rounded-lg pl-10 pr-4 py-1.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
+              />
+            </div>
+            <button
+              onClick={handleInputAnalysis}
+              disabled={!stockInput.trim() || aiConfigs.length === 0 || hasAnyAnalyzing}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20"
+            >
+              <Play className="w-4 h-4" />
+              分析
+            </button>
+          </div>
+
+          <div className="h-6 w-px bg-white/10"></div>
+
+          {/* 刷新 */}
+          <button
+            onClick={refreshFollowList}
+            className="flex items-center gap-1 px-3 py-1.5 text-gray-400 hover:text-cyan-400 hover:bg-white/5 rounded-lg text-sm transition-all"
+            title="刷新自选股列表"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+
+          {/* 一键分析全部 */}
+          <button
+            onClick={analyzeAll}
+            disabled={stockAnalysisList.length === 0 || aiConfigs.length === 0 || hasAnyAnalyzing || isAnalyzingAll}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
+          >
+            {isAnalyzingAll ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                分析中...
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4" />
+                一键分析
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Tab 切换 */}
-      <div className="flex gap-1 bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-1 shadow-2xl">
-        <button
-          onClick={() => setActiveTab('analysis')}
-          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'analysis'
-              ? 'bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white border border-white/10'
-              : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-          }`}
-        >
-          实时分析
-        </button>
-        <button
-          onClick={() => setActiveTab('history')}
-          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'history'
-              ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-white border border-white/10'
-              : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-          }`}
-        >
-          历史记录
-        </button>
+      {/* 错误提示 */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-3 flex-shrink-0">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm text-red-400">{error}</p>
+            {error.includes('AI 模型') && (
+              <p className="text-xs text-gray-400 mt-1">
+                请前往「系统设置」→「AI 设置」配置 AI 模型后再进行分析
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 主区域：左右分栏 */}
+      <div className="flex gap-3 flex-1 min-h-0 mt-2.5">
+        {/* ===== 左栏：股票列表 ===== */}
+        <div className="w-72 flex-shrink-0 bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+          {/* 筛选输入 */}
+          <div className="p-3 border-b border-white/5">
+            <div className="relative">
+              <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+              <input
+                type="text"
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                placeholder="筛选股票..."
+                className="w-full bg-slate-800/60 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+              />
+            </div>
+          </div>
+
+          {/* 列表区域（可滚动） */}
+          <div className="flex-1 overflow-y-auto">
+            {/* 分析中的任务 */}
+            {filteredAnalyzing.length > 0 && (
+              <div className="px-2 pt-2">
+                <div className="flex items-center gap-1.5 px-2 py-1">
+                  <Loader2 className="w-3 h-3 text-cyan-400 animate-spin" />
+                  <span className="text-xs text-gray-500 font-medium">分析中 ({filteredAnalyzing.length})</span>
+                </div>
+                {filteredAnalyzing.map(renderListItem)}
+              </div>
+            )}
+
+            {/* 已有结果的 */}
+            {filteredCompleted.length > 0 && (
+              <div className="px-2 pt-2">
+                <div className="flex items-center gap-1.5 px-2 py-1">
+                  <Clock className="w-3 h-3 text-gray-500" />
+                  <span className="text-xs text-gray-500 font-medium">历史记录 ({filteredCompleted.length})</span>
+                </div>
+                {filteredCompleted.map(renderListItem)}
+              </div>
+            )}
+
+            {/* 未分析的 */}
+            {filteredIdle.length > 0 && (
+              <div className="px-2 pt-2">
+                <div className="flex items-center gap-1.5 px-2 py-1">
+                  <span className="text-xs text-gray-600 font-medium">待分析 ({filteredIdle.length})</span>
+                </div>
+                {filteredIdle.map(renderListItem)}
+              </div>
+            )}
+
+            {/* 空列表提示 */}
+            {stockAnalysisList.length === 0 && (
+              <div className="flex flex-col items-center justify-center p-6 text-center">
+                <Brain className="w-8 h-8 text-gray-600 mb-2" />
+                <p className="text-xs text-gray-500">暂无自选股</p>
+              </div>
+            )}
+
+            {/* 筛选无结果 */}
+            {stockAnalysisList.length > 0 && filteredAnalyzing.length === 0 && filteredCompleted.length === 0 && filteredIdle.length === 0 && (
+              <div className="flex flex-col items-center justify-center p-6 text-center">
+                <Search className="w-6 h-6 text-gray-600 mb-2" />
+                <p className="text-xs text-gray-500">无匹配结果</p>
+              </div>
+            )}
+          </div>
+
+          {/* 底部统计 */}
+          <div className="px-3 py-2 border-t border-white/5 text-xs text-gray-600">
+            共 {stockAnalysisList.length} 只
+          </div>
+        </div>
+
+        {/* ===== 右栏：详情区 ===== */}
+        <div className="flex-1 bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-y-auto p-5">
+          {renderDetail()}
+        </div>
       </div>
 
-      {activeTab === 'analysis' && (
-        <>
-          {/* 工具栏 */}
-          <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* AI模型选择 */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">AI模型：</span>
-                {aiConfigs.length > 0 ? (
-                  <div className="relative">
-                    <select
-                      value={selectedAiConfigId}
-                      onChange={(e) => setSelectedAiConfigId(Number(e.target.value))}
-                      disabled={hasAnyAnalyzing}
-                      className="appearance-none bg-slate-800/60 border border-white/10 rounded-lg px-3 py-1.5 pr-8 text-sm text-gray-300 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
-                    >
-                      {aiConfigs.map((config) => (
-                        <option key={config.ID} value={config.ID}>
-                          {config.name || `模型 ${config.ID}`}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  </div>
-                ) : (
-                  <span className="text-xs text-yellow-400">未配置</span>
-                )}
-              </div>
-
-              {/* 分隔线 */}
-              <div className="h-6 w-px bg-white/10"></div>
-
-              {/* 股票搜索输入 */}
-              <div className="flex-1 flex gap-2">
-                <div className="relative flex-1 max-w-xs">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={stockInput}
-                    onChange={(e) => setStockInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleInputAnalysis()}
-                    placeholder="输入股票代码，如 600519"
-                    disabled={hasAnyAnalyzing}
-                    className="w-full bg-slate-800/60 border border-white/10 rounded-lg pl-10 pr-4 py-1.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
-                  />
-                </div>
-                <button
-                  onClick={handleInputAnalysis}
-                  disabled={!stockInput.trim() || aiConfigs.length === 0 || hasAnyAnalyzing}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20"
-                >
-                  <Play className="w-4 h-4" />
-                  分析
-                </button>
-              </div>
-
-              {/* 分隔线 */}
-              <div className="h-6 w-px bg-white/10"></div>
-
-              {/* 一键分析全部 */}
-              <button
-                onClick={analyzeAll}
-                disabled={stockAnalysisList.length === 0 || aiConfigs.length === 0 || hasAnyAnalyzing || isAnalyzingAll}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 rounded-lg text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
-              >
-                {isAnalyzingAll ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    分析中...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4" />
-                    一键分析全部
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* 错误提示 */}
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm text-red-400">{error}</p>
-                {error.includes('AI 模型') && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    请前往「系统设置」→「AI 设置」配置 AI 模型后再进行分析
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 股票卡片列表 */}
-          {stockAnalysisList.length > 0 ? (
-            <div className="space-y-4">
-              {stockAnalysisList.map(stock => renderStockCard(stock))}
-            </div>
-          ) : (
-            <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-8 shadow-2xl">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4">
-                  <Brain className="w-10 h-10 text-cyan-400" />
-                </div>
-                <h3 className="text-lg text-white mb-2">暂无自选股</h3>
-                <p className="text-sm text-gray-400 max-w-md">
-                  请先在「自选列表」中添加股票，或在上方输入股票代码进行分析
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* 免责声明 */}
-          <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
-            <div className="text-xs text-gray-400 space-y-1">
-              <p>• AI 分析基于多维度数据，包含技术面、基本面、资金面、市场情绪等指标</p>
-              <p>• 分析结果由 AI 模型生成，仅供参考，不构成投资建议</p>
-              <p>• 投资有风险，入市需谨慎，请结合实际情况做出决策</p>
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === 'history' && (
-        <AnalysisHistory embedded />
-      )}
+      {/* 免责声明 */}
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-3 shadow-2xl flex-shrink-0">
+        <div className="text-xs text-gray-500 flex gap-4">
+          <span>AI 分析仅供参考，不构成投资建议</span>
+          <span>投资有风险，入市需谨慎</span>
+        </div>
+      </div>
 
       {/* CSS 动画 */}
       <style>{`
@@ -1138,7 +1905,7 @@ export function AIAnalysis() {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes fade-in {
           from {
             opacity: 0;
@@ -1147,11 +1914,11 @@ export function AIAnalysis() {
             opacity: 1;
           }
         }
-        
+
         .animate-slide-in {
           animation: slide-in 0.3s ease-out forwards;
         }
-        
+
         .animate-fade-in {
           animation: fade-in 0.3s ease-out forwards;
         }

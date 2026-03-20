@@ -99,6 +99,8 @@ export function GetCronTaskList(arg1:models.CronTaskQuery):Promise<models.CronTa
 
 export function GetCronTaskTypes():Promise<Array<lo.Tuple2_string_string_>>;
 
+export function GetDashboardPromptID():Promise<number>;
+
 export function GetFollowList(arg1:number):Promise<any>;
 
 export function GetFollowedFund():Promise<Array<data.FollowedFund>>;

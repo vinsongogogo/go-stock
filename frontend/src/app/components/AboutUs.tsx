@@ -1,8 +1,12 @@
 import { Info, Users, Target, Zap, Shield, TrendingUp, Mail, Github, Twitter } from 'lucide-react';
+import { useLayoutShell } from '../context/LayoutShellContext';
+import { cn } from './ui/utils';
 
 export function AboutUs() {
+  const { compactLayout } = useLayoutShell();
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {/* 头部 */}
       <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 sm:p-6 shadow-2xl">
         <div className="flex items-center gap-3 mb-3">
@@ -22,7 +26,13 @@ export function AboutUs() {
       </div>
 
       {/* 核心特性 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div
+        className={cn(
+          "mt-2.5",
+          "grid gap-3",
+          compactLayout ? "grid-cols-1 md:grid-cols-3" : "grid-cols-3",
+        )}
+      >
         <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl hover:border-cyan-500/30 transition-all group">
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
             <Zap className="w-6 h-6 text-cyan-400" />
@@ -87,7 +97,12 @@ export function AboutUs() {
       {/* 数据统计 */}
       <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 sm:p-6 shadow-2xl">
         <h3 className="text-lg text-white font-light mb-4">平台数据</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div
+          className={cn(
+            "grid gap-4",
+            compactLayout ? "grid-cols-2 md:grid-cols-4" : "grid-cols-4",
+          )}
+        >
           <div className="text-center">
             <div className="text-2xl sm:text-3xl font-light text-cyan-400 mb-1">100K+</div>
             <div className="text-xs text-gray-400">活跃用户</div>
@@ -110,7 +125,12 @@ export function AboutUs() {
       {/* 技术栈 */}
       <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 sm:p-6 shadow-2xl">
         <h3 className="text-lg text-white font-light mb-4">技术架构</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div
+          className={cn(
+            "grid gap-3",
+            compactLayout ? "grid-cols-2 md:grid-cols-4" : "grid-cols-4",
+          )}
+        >
           {[
             { name: 'React', color: 'cyan' },
             { name: 'TypeScript', color: 'blue' },
@@ -134,7 +154,12 @@ export function AboutUs() {
       {/* 联系方式 */}
       <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 sm:p-6 shadow-2xl">
         <h3 className="text-lg text-white font-light mb-4">联系我们</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div
+          className={cn(
+            "grid gap-4",
+            compactLayout ? "grid-cols-1 md:grid-cols-3" : "grid-cols-3",
+          )}
+        >
           <button className="flex items-center gap-3 p-3 bg-slate-800/40 rounded-lg border border-white/10 hover:border-cyan-500/30 transition-all group">
             <div className="w-10 h-10 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Mail className="w-5 h-5 text-cyan-400" />

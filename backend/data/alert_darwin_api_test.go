@@ -4,28 +4,15 @@
 package data
 
 import (
-	"go-stock/backend/logger"
 	"testing"
-
-	"github.com/go-toast/toast"
 )
 
 // @Date 2025/02/06 17:50
-// @Desc
+// @Desc macOS 通知测试 - toast 库仅支持 Windows，macOS 使用系统通知
 // -----------------------------------------------------------------------------------
 
 func TestAlert(t *testing.T) {
-	notification := toast.Notification{
-		AppID:    "go-stock",
-		Title:    "Hello, World!",
-		Message:  "This is a toast notification.",
-		Icon:     "../../build/appicon.png",
-		Duration: "short",
-		Audio:    toast.Default,
-	}
-	err := notification.Push()
-	if err != nil {
-		logger.SugaredLogger.Error(err)
-		return
-	}
+	// macOS 使用 osascript 或 terminal-notifier 实现通知
+	// toast 库仅适用于 Windows 平台
+	t.Skip("跳过: macOS 不支持 go-toast 库，请使用 NewAlertDarwinApi().Alert() 测试")
 }

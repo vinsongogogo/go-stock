@@ -7,6 +7,7 @@ interface PaginationProps {
   pageSize: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  extra?: React.ReactNode;
 }
 
 export function Pagination({
@@ -16,6 +17,7 @@ export function Pagination({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  extra,
 }: PaginationProps) {
   const startItem = (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
@@ -57,10 +59,11 @@ export function Pagination({
   };
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* 左侧：信息显示 */}
+    <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 px-4 py-2.5 shadow-2xl">
+      <div className="flex items-center justify-between gap-4">
+        {/* 左侧：额外内容 + 信息显示 */}
         <div className="flex items-center gap-4 text-xs text-gray-400">
+          {extra}
           <div>
             显示 <span className="text-cyan-400 font-medium">{startItem}</span> 至{' '}
             <span className="text-cyan-400 font-medium">{endItem}</span> 条，共{' '}

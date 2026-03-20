@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { TrendingUp, Calendar, Filter, Loader2 } from 'lucide-react';
+import { TrendingUp, Calendar as CalendarIcon, Filter, Loader2, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { LongTigerRank as getLongTigerRank } from '../../../wailsjs/go/main/App';
 import { KLineChart } from './KLineChart';
 import { MoneyTrend } from './MoneyTrend';
 import type { LongTigerRankData } from '../types/longtiger';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import * as Popover from '@radix-ui/react-popover';
+import { DayPicker } from 'react-day-picker';
+import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 // 格式化日期为 YYYY-MM-DD
 function formatDate(date: Date): string {
@@ -43,7 +48,7 @@ export function LongTigerRank() {
   const [data, setData] = useState<LongTigerRankData[]>([]);
   const [filteredData, setFilteredData] = useState<LongTigerRankData[]>([]);
   const [explanations, setExplanations] = useState<string[]>([]);
-  const [selectedExplanation, setSelectedExplanation] = useState<string>('');
+  const [selectedExplanation, setSelectedExplanation] = useState<string>('__all__');
   const [loading, setLoading] = useState(false);
   const [hoveredStock, setHoveredStock] = useState<{code: string; name: string; type: 'kline' | 'money'} | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
@@ -86,14 +91,14 @@ export function LongTigerRank() {
   // 日期变化时重新获取数据
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
-    setSelectedExplanation('');
+    setSelectedExplanation('__all__');
     fetchData(newDate);
   };
 
   // 筛选逻辑
   const handleFilterChange = (explanation: string) => {
     setSelectedExplanation(explanation);
-    if (explanation) {
+    if (explanation && explanation !== '__all__') {
       setFilteredData(data.filter(item => item.EXPLANATION === explanation));
     } else {
       setFilteredData(data);
@@ -145,10 +150,14 @@ export function LongTigerRank() {
   const upBg = 'bg-red-500/10';
   const downBg = 'bg-green-500/10';
 
+  // 日期选择器弹窗控制
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const selectedDate = useMemo(() => date ? new Date(date) : undefined, [date]);
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {/* 标题卡片 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/50">
             <TrendingUp className="w-6 h-6 text-white" />
@@ -161,35 +170,135 @@ export function LongTigerRank() {
       </div>
 
       {/* 筛选区域 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl mt-2.5">
         <div className="flex items-center gap-2 mb-3">
           <Filter className="w-4 h-4 text-cyan-400" />
           <h3 className="text-sm text-gray-300">筛选条件</h3>
         </div>
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-400" />
+            <CalendarIcon className="w-4 h-4 text-gray-400" />
             <label className="text-xs text-gray-400">日期:</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => handleDateChange(e.target.value)}
-              className="px-3 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
-            />
+            <Popover.Root open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <Popover.Trigger asChild>
+                <button
+                  className="flex items-center justify-between gap-2 px-3 py-2 min-w-[160px] bg-slate-800/80 border border-cyan-500/50 rounded-lg text-sm text-white hover:border-cyan-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all backdrop-blur-sm shadow-lg shadow-cyan-500/10"
+                >
+                  <span>{date || '选择日期'}</span>
+                  <CalendarIcon className="w-4 h-4 text-cyan-400" />
+                </button>
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Content
+                  className="z-50 bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl shadow-2xl shadow-cyan-500/20 p-4"
+                  sideOffset={8}
+                  align="start"
+                >
+                  <DayPicker
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(day) => {
+                      if (day) {
+                        handleDateChange(format(day, 'yyyy-MM-dd'));
+                      }
+                      setCalendarOpen(false);
+                    }}
+                    locale={zhCN}
+                    className="text-white"
+                    classNames={{
+                      months: "flex flex-col",
+                      month: "space-y-4",
+                      caption: "flex justify-center pt-1 relative items-center mb-4",
+                      caption_label: "text-base font-medium text-white",
+                      nav: "flex items-center",
+                      nav_button: "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100 flex items-center justify-center rounded-md hover:bg-slate-700/50 transition-colors",
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse",
+                      head_row: "flex",
+                      head_cell: "text-slate-400 rounded-md w-9 font-normal text-sm",
+                      row: "flex w-full mt-2",
+                      cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 h-9 w-9",
+                      day: "h-9 w-9 p-0 font-normal text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors flex items-center justify-center cursor-pointer",
+                      day_selected: "bg-cyan-500 text-white hover:bg-cyan-400 rounded-lg shadow-lg shadow-cyan-500/50",
+                      day_today: "text-cyan-400 font-semibold",
+                      day_outside: "text-slate-600 opacity-50",
+                      day_disabled: "text-slate-600 opacity-30",
+                      day_hidden: "invisible",
+                    }}
+                    components={{
+                      IconLeft: () => <ChevronLeft className="h-4 w-4 text-slate-300" />,
+                      IconRight: () => <ChevronRight className="h-4 w-4 text-slate-300" />,
+                    }}
+                  />
+                  <div className="flex gap-3 mt-4 pt-4 border-t border-slate-700/50">
+                    <button
+                      onClick={() => {
+                        handleDateChange(formatDate(new Date()));
+                        setCalendarOpen(false);
+                      }}
+                      className="flex-1 py-2 px-4 bg-cyan-500 hover:bg-cyan-400 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-cyan-500/30"
+                    >
+                      今天
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDateChange('');
+                        setCalendarOpen(false);
+                      }}
+                      className="flex-1 py-2 px-4 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-cyan-500/30 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      清除
+                    </button>
+                  </div>
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover.Root>
           </div>
           
           <div className="flex items-center gap-2">
             <label className="text-xs text-gray-400">上榜原因:</label>
-            <select
-              value={selectedExplanation}
-              onChange={(e) => handleFilterChange(e.target.value)}
-              className="px-3 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all min-w-[200px]"
-            >
-              <option value="">全部</option>
-              {explanations.map((exp) => (
-                <option key={exp} value={exp}>{exp}</option>
-              ))}
-            </select>
+            <SelectPrimitive.Root value={selectedExplanation} onValueChange={handleFilterChange}>
+              <SelectPrimitive.Trigger
+                className="flex items-center justify-between gap-2 px-3 py-2 min-w-[200px] bg-slate-800/80 border border-cyan-500/50 rounded-lg text-sm text-white hover:border-cyan-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all backdrop-blur-sm shadow-lg shadow-cyan-500/10 data-[state=open]:border-cyan-400"
+              >
+                <SelectPrimitive.Value placeholder="全部" />
+                <SelectPrimitive.Icon>
+                  <ChevronDown className="w-4 h-4 text-cyan-400 transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
+                </SelectPrimitive.Icon>
+              </SelectPrimitive.Trigger>
+              <SelectPrimitive.Portal>
+                <SelectPrimitive.Content
+                  className="z-50 overflow-hidden bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl shadow-2xl shadow-cyan-500/20"
+                  position="popper"
+                  sideOffset={8}
+                >
+                  <SelectPrimitive.Viewport className="p-2">
+                    <SelectPrimitive.Item
+                      value="__all__"
+                      className="relative flex items-center px-3 py-2 text-sm text-white rounded-lg cursor-pointer outline-none hover:bg-slate-700/50 focus:bg-slate-700/50 data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-400 transition-colors"
+                    >
+                      <SelectPrimitive.ItemText>全部</SelectPrimitive.ItemText>
+                      <SelectPrimitive.ItemIndicator className="absolute right-2">
+                        <Check className="w-4 h-4 text-cyan-400" />
+                      </SelectPrimitive.ItemIndicator>
+                    </SelectPrimitive.Item>
+                    {explanations.map((exp) => (
+                      <SelectPrimitive.Item
+                        key={exp}
+                        value={exp}
+                        className="relative flex items-center px-3 py-2 text-sm text-white rounded-lg cursor-pointer outline-none hover:bg-slate-700/50 focus:bg-slate-700/50 data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-400 transition-colors"
+                      >
+                        <SelectPrimitive.ItemText>{exp}</SelectPrimitive.ItemText>
+                        <SelectPrimitive.ItemIndicator className="absolute right-2">
+                          <Check className="w-4 h-4 text-cyan-400" />
+                        </SelectPrimitive.ItemIndicator>
+                      </SelectPrimitive.Item>
+                    ))}
+                  </SelectPrimitive.Viewport>
+                </SelectPrimitive.Content>
+              </SelectPrimitive.Portal>
+            </SelectPrimitive.Root>
           </div>
           
           <div className="text-xs text-amber-400/80 ml-auto">

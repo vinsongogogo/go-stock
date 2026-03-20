@@ -390,6 +390,9 @@ func (a *App) domReady(ctx context.Context) {
 	//}
 	updateBasicInfo()
 
+	// 初始化仪表盘 Prompt 模板
+	data.NewPromptTemplateApi().InitDashboardPrompt()
+
 	// Add your action here
 	//定时更新数据
 	config := data.GetSettingConfig()
@@ -1317,6 +1320,9 @@ func (a *App) AddPrompt(prompt models.Prompt) string {
 }
 func (a *App) DelPrompt(id uint) string {
 	return data.NewPromptTemplateApi().DelPrompt(id)
+}
+func (a *App) GetDashboardPromptID() int {
+	return data.NewPromptTemplateApi().GetDashboardPromptID()
 }
 func (a *App) SetStockAICron(cronText, stockCode string) {
 	data.NewStockDataApi().SetStockAICron(cronText, stockCode)

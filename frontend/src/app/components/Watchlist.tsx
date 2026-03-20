@@ -1,5 +1,7 @@
-import { Plus, TrendingUp, RefreshCw, Loader2 } from 'lucide-react';
+import { Plus, TrendingUp, RefreshCw, Loader2, Brain } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLayoutShell } from '../context/LayoutShellContext';
+import { cn } from './ui/utils';
 
 // Wails Go bridge — accessed lazily so Wails has time to inject into window
 const getApp = () => (window as any)?.go?.main?.App;
@@ -36,7 +38,12 @@ interface Stock {
   [key: string]: any;
 }
 
-export function Watchlist() {
+interface WatchlistProps {
+  onNavigateToAIAnalysis?: (stockCode: string, stockName: string) => void;
+}
+
+export function Watchlist({ onNavigateToAIAnalysis }: WatchlistProps) {
+  const { compactLayout } = useLayoutShell();
   const [stocks, setStocks] = useState<Record<string, Stock>>({});
   const [followList, setFollowList] = useState<FollowedStock[]>([]);
   const [stockCodes, setStockCodes] = useState<string[]>([]);
@@ -322,7 +329,12 @@ export function Watchlist() {
       </div>
 
       {/* 股票列表 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
+      <div
+        className={cn(
+          "grid gap-2 sm:gap-3 mt-2.5",
+          compactLayout ? "grid-cols-1 md:grid-cols-3" : "grid-cols-3",
+        )}
+      >
         {displayList.map((stock) => (
           <div
             key={stock.code}
@@ -392,18 +404,14 @@ export function Watchlist() {
             <div className="flex items-center justify-between pt-1.5 border-t border-white/5">
               <span className="text-[9px] text-gray-500">{stock.updateTime || '加载中...'}</span>
               <div className="flex gap-1">
-                {/* <button className="px-1.5 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded text-[9px] text-cyan-400 transition-all">
-                  盘口
+                <button
+                  onClick={() => onNavigateToAIAnalysis?.(stock.code, stock.name)}
+                  className="px-1.5 py-0.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded text-[9px] text-purple-400 hover:text-purple-300 transition-all flex items-center gap-0.5"
+                  title="AI分析"
+                >
+                  <Brain className="w-3 h-3" />
+                  AI分析
                 </button>
-                <button className="px-1.5 py-0.5 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded text-[9px] text-green-400 transition-all">
-                  分时
-                </button>
-                <button className="px-1.5 py-0.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded text-[9px] text-red-400 transition-all">
-                  日K
-                </button>
-                <button className="px-1.5 py-0.5 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded text-[9px] text-yellow-400 transition-all">
-                  详情
-                </button> */}
               </div>
             </div>
           </div>

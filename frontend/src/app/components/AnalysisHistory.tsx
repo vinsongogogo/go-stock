@@ -350,10 +350,10 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {/* 头部 — embedded 模式下隐藏 */}
       {!embedded && (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
@@ -380,7 +380,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
       )}
 
       {/* 搜索筛选区域 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
         <div className="flex flex-wrap gap-3">
           {/* 搜索框 */}
           <div className="flex-1 min-w-[200px] relative">

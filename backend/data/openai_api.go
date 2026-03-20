@@ -694,6 +694,7 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 				"reasoning_content": "使用工具查询",
 				"content":           content,
 			})
+			ch <- map[string]any{"extraContent": "✅ 投资者互动数据采集完成\n"}
 		}()
 
 		go func() {
@@ -721,6 +722,7 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 				"reasoning_content": "使用工具查询",
 				"content":           "\n# 国内宏观经济数据：\n" + market.String(),
 			})
+			ch <- map[string]any{"extraContent": "✅ 宏观经济数据采集完成\n"}
 		}()
 
 		//go func() {
@@ -777,7 +779,7 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 				"reasoning_content": "使用工具查询",
 				"content":           "近期重大事件/会议如下：\n" + md.String(),
 			})
-
+			ch <- map[string]any{"extraContent": "✅ 重大事件/会议数据采集完成\n"}
 		}()
 
 		go func() {
@@ -832,15 +834,41 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 				})
 				logger.SugaredLogger.Infof("getKLineData=\n%s", markdownTable)
 			}
-
+			ch <- map[string]any{"extraContent": "✅ K线数据采集完成\n"}
 		}()
 
 		go func() {
 			defer wg.Done()
+			// 优先使用 API 获取股价数据（快），失败则回退到浏览器爬虫（慢但全）
+			priceData, priceErr := NewStockDataApi().GetStockCodeRealTimeData(stockCode)
+			if priceErr == nil && priceData != nil && len(*priceData) > 0 {
+				si := (*priceData)[0]
+				var priceInfo strings.Builder
+				priceInfo.WriteString(fmt.Sprintf("### %s(%s) 实时行情\n", si.Name, si.Code))
+				priceInfo.WriteString(fmt.Sprintf("- 当前价: %s | 今开: %s | 昨收: %s\n", si.Price, si.Open, si.PreClose))
+				priceInfo.WriteString(fmt.Sprintf("- 最高: %s | 最低: %s\n", si.High, si.Low))
+				priceInfo.WriteString(fmt.Sprintf("- 成交量: %s | 成交额: %s\n", si.Volume, si.Amount))
+				priceInfo.WriteString(fmt.Sprintf("- 涨跌幅: %.2f%% | 涨跌额: %.2f\n", si.ChangePercent, si.ChangePrice))
+				priceInfo.WriteString(fmt.Sprintf("- 买一: %s(%s) | 卖一: %s(%s)\n", si.B1P, si.B1V, si.A1P, si.A1V))
+				priceInfo.WriteString(fmt.Sprintf("- 日期: %s %s\n", si.Date, si.Time))
+				msg = append(msg, map[string]interface{}{
+					"role":    "user",
+					"content": stock + "股价数据",
+				})
+				msg = append(msg, map[string]interface{}{
+					"role":    "assistant",
+					"content": "\n## " + stock + "股价数据：\n" + priceInfo.String(),
+				})
+				logger.SugaredLogger.Infof("GetStockCodeRealTimeData stock:%s stockCode:%s", stock, stockCode)
+				ch <- map[string]any{"extraContent": "✅ 实时股价数据采集完成\n"}
+				return
+			}
+			// API 无数据，回退到浏览器爬虫
+			logger.SugaredLogger.Infof("API无股价数据，回退爬虫采集 stock:%s stockCode:%s", stock, stockCode)
+			ch <- map[string]any{"extraContent": "⏳ API无股价数据，正在通过爬虫采集...\n"}
 			messages := SearchStockPriceInfo(stock, stockCode, o.CrawlTimeOut)
 			if messages == nil || len(*messages) == 0 {
 				logger.SugaredLogger.Error("获取股票价格失败")
-				//ch <- "***❗获取股票价格失败,分析结果可能不准确***<hr>"
 				ch <- map[string]any{
 					"code":         1,
 					"question":     question,
@@ -861,8 +889,7 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 				"role":    "assistant",
 				"content": "\n## " + stock + "股价数据：\n" + price,
 			})
-			logger.SugaredLogger.Infof("SearchStockPriceInfo stock:%s stockCode:%s", stock, stockCode)
-			logger.SugaredLogger.Infof("SearchStockPriceInfo assistant:%s", "\n## "+stock+"股价数据：\n"+price)
+			ch <- map[string]any{"extraContent": "✅ 股价数据（爬虫）采集完成\n"}
 		}()
 
 		go func() {
@@ -895,6 +922,7 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 					"content": stock + message,
 				})
 			}
+			ch <- map[string]any{"extraContent": "✅ 财报数据采集完成\n"}
 		}()
 
 		go func() {
@@ -919,6 +947,7 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 				"role":    "assistant",
 				"content": messageText.String(),
 			})
+			ch <- map[string]any{"extraContent": "✅ 市场资讯采集完成\n"}
 		}()
 
 		//go func() {
@@ -958,9 +987,11 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 				"role":    "assistant",
 				"content": newsText.String(),
 			})
+			ch <- map[string]any{"extraContent": "✅ 相关新闻资讯采集完成\n"}
 		}()
 
 		wg.Wait()
+		ch <- map[string]any{"extraContent": "✅ 所有数据采集完成，正在调用AI分析...\n"}
 
 		msg = append(msg, map[string]interface{}{
 			"role":    "user",
