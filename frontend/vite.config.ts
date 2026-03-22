@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   server: {
-    // open: true,  // 不自动打开浏览器
+    open: true,  // 不自动打开浏览器
   },
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if

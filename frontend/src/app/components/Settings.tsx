@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Save, Upload, Download } from 'lucide-react';
 import { GetConfig, UpdateConfig, ExportConfig, CheckSponsorCode, SendDingDingMessageByType } from '../../../wailsjs/go/main/App';
 import { data } from '../../../wailsjs/go/models';
+import { useLayoutShell } from '../context/LayoutShellContext';
+import { cn } from './ui/utils';
 
 export function Settings() {
+  const { compactLayout } = useLayoutShell();
   // 基础设置
   const [configId, setConfigId] = useState<number>(1);
   const [tushareToken, setTushareToken] = useState('');
@@ -315,7 +318,7 @@ export function Settings() {
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {/* 消息提示 */}
       {message && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${
@@ -335,7 +338,7 @@ export function Settings() {
       )}
 
       {/* 头部 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/50">
             <SettingsIcon className="w-6 h-6 text-white" />
@@ -348,14 +351,14 @@ export function Settings() {
       </div>
 
       {/* 基础设置 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl mt-2.5">
         <div className="mb-4">
           <h3 className="text-base text-green-400 font-medium mb-3 border-b border-green-500/30 pb-2">基础设置</h3>
         </div>
 
         <div className="space-y-4">
           {/* Tushare Token + 开关 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <div>
               <label className="block text-sm text-gray-300 mb-2">Tushare Token:</label>
               <input
@@ -373,7 +376,7 @@ export function Settings() {
           </div>
 
           {/* 数据刷新间隔 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <div>
               <label className="block text-sm text-gray-300 mb-2">数据刷新间隔(秒):</label>
               <input
@@ -391,7 +394,7 @@ export function Settings() {
           </div>
 
           {/* 浏览器安装路径 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <div>
               <label className="block text-sm text-gray-300 mb-2">浏览器安装路径:</label>
               <input
@@ -415,7 +418,7 @@ export function Settings() {
           </div>
 
           {/* 赞助码 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <div>
               <label className="block text-sm text-gray-300 mb-2">赞助码:</label>
               <div className="flex gap-2">
@@ -445,7 +448,12 @@ export function Settings() {
         </div>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div
+            className={cn(
+              "grid gap-4",
+              compactLayout ? "grid-cols-2 md:grid-cols-5" : "grid-cols-5",
+            )}
+          >
             <ToggleSwitch checked={dingPushEnable} onChange={setDingPushEnable} label="钉钉推送" />
             <ToggleSwitch checked={localPushEnable} onChange={setLocalPushEnable} label="本地推送" />
             <ToggleSwitch checked={enableDanmu} onChange={setEnableDanmu} label="弹幕功能" />
@@ -455,7 +463,12 @@ export function Settings() {
 
           {/* 只提醒红字新闻 - 条件显示 */}
           {enablePushNews && (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div
+              className={cn(
+                "grid gap-4",
+                compactLayout ? "grid-cols-2 md:grid-cols-5" : "grid-cols-5",
+              )}
+            >
               <ToggleSwitch checked={enableOnlyPushRedNews} onChange={setEnableOnlyPushRedNews} label="只提醒红字或关注个股的新闻" />
             </div>
           )}
@@ -494,7 +507,7 @@ export function Settings() {
 
         <div className="space-y-4">
           {/* AI 诊股总开关 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <ToggleSwitch checked={openAiEnable} onChange={setOpenAiEnable} label="AI诊股" />
           </div>
 
@@ -502,7 +515,12 @@ export function Settings() {
           {openAiEnable && (
             <>
               {/* 超时和K线天数 */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div
+                className={cn(
+                  "grid gap-4",
+                  compactLayout ? "grid-cols-1 md:grid-cols-4" : "grid-cols-4",
+                )}
+              >
                 <div>
                   <label className="block text-sm text-gray-300 mb-2">Crawler Timeout(秒):</label>
                   <input
@@ -547,7 +565,7 @@ export function Settings() {
               </div>
 
               {/* 提示词 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
                 <div>
                   <label className="block text-sm text-gray-300 mb-2">默认系统提示词:</label>
                   <textarea
@@ -591,7 +609,7 @@ export function Settings() {
                     </div>
                     
                     {/* 配置字段 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
                       <div>
                         <label className="block text-sm text-gray-300 mb-2">配置名称:</label>
                         <input
@@ -677,7 +695,11 @@ export function Settings() {
                       </div>
                       
                       {aiConfig.httpProxyEnabled && (
-                        <div className="md:col-span-2">
+                        <div
+                          className={cn(
+                            compactLayout ? "md:col-span-2" : "col-span-2",
+                          )}
+                        >
                           <label className="block text-sm text-gray-300 mb-2">http代理地址:</label>
                           <input
                             type="text"

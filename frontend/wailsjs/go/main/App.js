@@ -190,6 +190,10 @@ export function GetCronTaskTypes() {
   return window['go']['main']['App']['GetCronTaskTypes']();
 }
 
+export function GetDashboardPromptID() {
+  return window['go']['main']['App']['GetDashboardPromptID']();
+}
+
 export function GetFollowList(arg1) {
   return window['go']['main']['App']['GetFollowList'](arg1);
 }

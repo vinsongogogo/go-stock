@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { SubMenu } from './SubMenu';
 import { Pagination } from './Pagination';
+import { useLayoutShell } from '../context/LayoutShellContext';
+import { cn } from './ui/utils';
 
 interface StockFlowData {
   code: string;
@@ -76,6 +78,7 @@ const generateMockData = (): StockFlowData[] => {
 };
 
 export function MoneyFlow() {
+  const { compactLayout } = useLayoutShell();
   const [activeSubMenu, setActiveSubMenu] = useState('净流入额排名');
   const [stockData] = useState(generateMockData());
   const [currentPage, setCurrentPage] = useState(1);
@@ -134,9 +137,9 @@ export function MoneyFlow() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {/* 头部 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/50">
             <TrendingUp className="w-6 h-6 text-white" />
@@ -149,11 +152,13 @@ export function MoneyFlow() {
       </div>
 
       {/* 子菜单 */}
-      <SubMenu 
-        items={subMenuItems} 
-        activeItem={activeSubMenu} 
-        onItemClick={setActiveSubMenu}
-      />
+      <div className="mt-2.5">
+        <SubMenu
+          items={subMenuItems}
+          activeItem={activeSubMenu}
+          onItemClick={setActiveSubMenu}
+        />
+      </div>
 
       {/* 数据表格 */}
       <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
@@ -256,8 +261,13 @@ export function MoneyFlow() {
       />
 
       {/* 底部说明 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl mt-3">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl mt-3">
+        <div
+          className={cn(
+            "grid gap-3 text-xs",
+            compactLayout ? "grid-cols-1 md:grid-cols-3" : "grid-cols-3",
+          )}
+        >
           <div className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5" />
             <div>

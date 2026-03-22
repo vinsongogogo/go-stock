@@ -63,11 +63,12 @@ const SENTIMENT_LABELS: Record<string, string> = {
 };
 
 function getSentimentLabel(value: number): string {
-  if (value >= 75) return SENTIMENT_LABELS['100'];
-  if (value >= 25) return SENTIMENT_LABELS['50'];
-  if (value >= -25) return SENTIMENT_LABELS['0'];
-  if (value >= -75) return SENTIMENT_LABELS['-50'];
-  return SENTIMENT_LABELS['-100'];
+  // value 范围是 -100~100
+  if (value >= 60) return SENTIMENT_LABELS['100'];   // 极热
+  if (value >= 20) return SENTIMENT_LABELS['50'];    // 乐观
+  if (value >= -20) return SENTIMENT_LABELS['0'];    // 中性
+  if (value >= -60) return SENTIMENT_LABELS['-50'];  // 谨慎
+  return SENTIMENT_LABELS['-100'];                   // 冰点
 }
 
 function getSentimentColor(value: number): string {
@@ -143,11 +144,11 @@ export function MarketGauge() {
   const upCount = data?.upDownCount?.upCount || 0;
   const downCount = data?.upDownCount?.downCount || 0;
   const flatCount = data?.upDownCount?.flatCount || 0;
-  const totalStocks = upCount + downCount + flatCount || 1;
+  const totalStocksNum = upCount + downCount + flatCount || 1;
 
-  const bullishPct = Math.round((upCount / totalStocks) * 100) || 50;
-  const bearishPct = Math.round((downCount / totalStocks) * 100) || 30;
-  const neutralPct = 100 - bullishPct - bearishPct;
+  const bullishPct = Math.round((upCount / totalStocksNum) * 100) || 0;
+  const bearishPct = Math.round((downCount / totalStocksNum) * 100) || 0;
+  const neutralPct = Math.max(0, 100 - bullishPct - bearishPct);
 
   return (
     <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 shadow-2xl hover:border-cyan-500/30 transition-all">

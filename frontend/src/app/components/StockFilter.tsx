@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, BarChart2, Loader2 } from 'lucide-react';
 import { SubMenu } from './SubMenu';
 import { Pagination } from './Pagination';
+import { useLayoutShell } from '../context/LayoutShellContext';
+import { cn } from './ui/utils';
 import { GetAllStocks, GetAllStockInfoList } from '../../../wailsjs/go/main/App';
 import { models, data } from '../../../wailsjs/go/models';
 
@@ -119,6 +121,7 @@ function formatAmount(amount: unknown): string {
 }
 
 export function StockFilter() {
+  const { compactLayout } = useLayoutShell();
   const [activeSubMenu, setActiveSubMenu] = useState('股票信息筛选');
   const [keyword, setKeyword] = useState('');
   const [stockData, setStockData] = useState<StockRow[]>([]);
@@ -224,8 +227,8 @@ export function StockFilter() {
   const flatCount = stockData.filter((r) => toNumber(r.CHANGE_RATE, 0) === 0).length;
 
   return (
-    <div className="space-y-3">
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+    <div className="space-y-6">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/50">
             <Filter className="w-6 h-6 text-white" />
@@ -237,19 +240,28 @@ export function StockFilter() {
         </div>
       </div>
 
-      <SubMenu
-        items={subMenuItems}
-        activeItem={activeSubMenu}
-        onItemClick={setActiveSubMenu}
-      />
+      <div className="mt-2.5">
+        <SubMenu
+          items={subMenuItems}
+          activeItem={activeSubMenu}
+          onItemClick={setActiveSubMenu}
+        />
+      </div>
 
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl space-y-4">
+      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl space-y-6">
         <div>
           <div className="flex items-center gap-2 mb-3">
             <BarChart2 className="w-4 h-4 text-cyan-400" />
             <h3 className="text-sm text-gray-300">技术指标筛选</h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          <div
+            className={cn(
+              "grid gap-2",
+              compactLayout
+                ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-6"
+                : "grid-cols-6",
+            )}
+          >
             {TECHNICAL_CHECKBOXES.map(({ label, key }) => (
               <label
                 key={key}
@@ -499,26 +511,14 @@ export function StockFilter() {
         pageSize={pageSize}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
+        extra={
+          <div className="flex items-center gap-4 pl-4 border-l border-white/10">
+            <span className="text-gray-400">上涨: <span className="text-red-400 font-medium">{upCount}</span></span>
+            <span className="text-gray-400">下跌: <span className="text-green-400 font-medium">{downCount}</span></span>
+            <span className="text-gray-400">平盘: <span className="text-gray-300 font-medium">{flatCount}</span></span>
+          </div>
+        }
       />
-
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl mt-3">
-        <div className="flex items-center justify-between text-xs">
-          <div className="text-gray-400">
-            共找到 <span className="text-cyan-400 font-medium">{totalCount}</span> 只股票
-          </div>
-          <div className="flex gap-4">
-            <div className="text-gray-400">
-              上涨: <span className="text-red-400 font-medium">{upCount}</span>
-            </div>
-            <div className="text-gray-400">
-              下跌: <span className="text-green-400 font-medium">{downCount}</span>
-            </div>
-            <div className="text-gray-400">
-              平盘: <span className="text-gray-300 font-medium">{flatCount}</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

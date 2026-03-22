@@ -215,7 +215,7 @@ func GetSettingConfig() *SettingConfig {
 			})
 		}
 		if settings.CrawlTimeOut <= 0 {
-			settings.CrawlTimeOut = 60
+			settings.CrawlTimeOut = 15
 		}
 		if settings.KDays < 30 {
 			settings.KDays = 60
@@ -225,7 +225,7 @@ func GetSettingConfig() *SettingConfig {
 		settings.BrowserPath, _ = CheckBrowser()
 	}
 	if settings.BrowserPoolSize <= 0 {
-		settings.BrowserPoolSize = 1
+		settings.BrowserPoolSize = 3
 	}
 	settingConfig.Settings = settings
 	settingConfig.AiConfigs = aiConfigs

@@ -1241,22 +1241,18 @@ type NorthFundData struct {
 }
 
 // crawlLimitUpDownData 爬取涨跌停数据（东方财富）
+// 使用 ulist.np 接口获取沪深指数的涨停跌停统计字段 f107(涨停)/f108(跌停)
 func (m MarketNewsApi) crawlLimitUpDownData() *LimitUpDownData {
-	// 东方财富涨停板数据接口
-	url := "https://datacenter-web.eastmoney.com/api/data/v1/get"
+	url := "https://push2.eastmoney.com/api/qt/ulist.np/get"
 	params := map[string]string{
-		"sortColumns": "LATEST_TIME",
-		"sortTypes":   "-1",
-		"pageSize":    "500",
-		"pageNumber":  "1",
-		"reportName":  "RPT_LIMITER_POOL",
-		"columns":     "ALL",
-		"source":      "WEB",
-		"client":      "WEB",
-		"filter":      fmt.Sprintf("(TRADE_DATE='%s')", time.Now().Format("2006-01-02")),
+		"fltt":   "2",
+		"fields": "f107,f108",
+		"secids": "1.000001,0.399001", // 上证指数 + 深证成指
 	}
 
-	resp, err := resty.New().SetTimeout(10 * time.Second).R().
+	resp, err := resty.New().SetTimeout(10*time.Second).R().
+		SetHeader("Referer", "https://quote.eastmoney.com/").
+		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36").
 		SetQueryParams(params).
 		Get(url)
 	if err != nil {
@@ -1264,43 +1260,34 @@ func (m MarketNewsApi) crawlLimitUpDownData() *LimitUpDownData {
 		return &LimitUpDownData{}
 	}
 
-	// 解析返回数据，统计涨停数量
-	limitUpCount := gjson.Get(string(resp.Body()), "result.count").Int()
+	body := string(resp.Body())
+	items := gjson.Get(body, "data.diff").Array()
 
-	// 跌停池
-	params["reportName"] = "RPT_LIMITER_POOL_DOWN"
-	resp2, err := resty.New().SetTimeout(10 * time.Second).R().
-		SetQueryParams(params).
-		Get(url)
-	if err != nil {
-		logger.SugaredLogger.Errorf("crawlLimitUpDownData down error: %v", err)
-		return &LimitUpDownData{LimitUpCount: int(limitUpCount)}
+	limitUpCount, limitDownCount := 0, 0
+	for _, item := range items {
+		limitUpCount += int(item.Get("f107").Int())
+		limitDownCount += int(item.Get("f108").Int())
 	}
-	limitDownCount := gjson.Get(string(resp2.Body()), "result.count").Int()
 
 	return &LimitUpDownData{
-		LimitUpCount:   int(limitUpCount),
-		LimitDownCount: int(limitDownCount),
+		LimitUpCount:   limitUpCount,
+		LimitDownCount: limitDownCount,
 	}
 }
 
 // crawlUpDownCountData 爬取涨跌家数数据（东方财富）
+// 使用 ulist.np 接口获取沪深指数统计字段 f104(上涨)/f105(下跌)/f106(平盘)
 func (m MarketNewsApi) crawlUpDownCountData() *UpDownCountData {
-	// 东方财富市场统计接口
-	url := "https://push2.eastmoney.com/api/qt/clist/get"
+	url := "https://push2.eastmoney.com/api/qt/ulist.np/get"
 	params := map[string]string{
-		"pn":     "1",
-		"pz":     "5000",
-		"po":     "1",
-		"np":     "1",
 		"fltt":   "2",
-		"invt":   "2",
-		"fid":    "f3",
-		"fs":     "m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23", // A股
-		"fields": "f3",                                // 涨跌幅
+		"fields": "f104,f105,f106",
+		"secids": "1.000001,0.399001", // 上证指数 + 深证成指
 	}
 
-	resp, err := resty.New().SetTimeout(10 * time.Second).R().
+	resp, err := resty.New().SetTimeout(10*time.Second).R().
+		SetHeader("Referer", "https://quote.eastmoney.com/").
+		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36").
 		SetQueryParams(params).
 		Get(url)
 	if err != nil {
@@ -1308,18 +1295,14 @@ func (m MarketNewsApi) crawlUpDownCountData() *UpDownCountData {
 		return &UpDownCountData{}
 	}
 
-	// 解析并统计
-	data := gjson.Get(string(resp.Body()), "data.diff").Array()
+	body := string(resp.Body())
+	items := gjson.Get(body, "data.diff").Array()
+
 	upCount, downCount, flatCount := 0, 0, 0
-	for _, item := range data {
-		change := item.Get("f3").Float()
-		if change > 0 {
-			upCount++
-		} else if change < 0 {
-			downCount++
-		} else {
-			flatCount++
-		}
+	for _, item := range items {
+		upCount += int(item.Get("f104").Int())
+		downCount += int(item.Get("f105").Int())
+		flatCount += int(item.Get("f106").Int())
 	}
 
 	return &UpDownCountData{
@@ -1330,15 +1313,17 @@ func (m MarketNewsApi) crawlUpDownCountData() *UpDownCountData {
 }
 
 // crawlNorthFundData 爬取北向资金数据（东方财富沪深港通）
+// s2n 分时数组格式: "时间,沪股通净流入(万),沪股通额度(万),深股通净流入(万),深股通额度(万),北向合计净流入(万)"
 func (m MarketNewsApi) crawlNorthFundData() *NorthFundData {
-	// 东方财富沪深港通资金流向
 	url := "https://push2.eastmoney.com/api/qt/kamt.rtmin/get"
 	params := map[string]string{
 		"fields1": "f1,f2,f3,f4",
 		"fields2": "f51,f52,f53,f54,f55,f56",
 	}
 
-	resp, err := resty.New().SetTimeout(10 * time.Second).R().
+	resp, err := resty.New().SetTimeout(10*time.Second).R().
+		SetHeader("Referer", "https://data.eastmoney.com/").
+		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36").
 		SetQueryParams(params).
 		Get(url)
 	if err != nil {
@@ -1347,10 +1332,23 @@ func (m MarketNewsApi) crawlNorthFundData() *NorthFundData {
 	}
 
 	body := string(resp.Body())
-	// f1: 沪股通净流入，f2: 深股通净流入，f3: 北向资金合计 (单位：万元)
-	shInflow := gjson.Get(body, "data.f1").Float() / 10000 // 转换为亿
-	szInflow := gjson.Get(body, "data.f2").Float() / 10000
-	netInflow := gjson.Get(body, "data.f3").Float() / 10000
+
+	// 从 s2n 分时数组取最后一条有效数据
+	s2nItems := gjson.Get(body, "data.s2n").Array()
+	var shInflow, szInflow, netInflow float64
+	for i := len(s2nItems) - 1; i >= 0; i-- {
+		line := s2nItems[i].String()
+		parts := strings.Split(line, ",")
+		if len(parts) >= 6 && parts[1] != "-" {
+			shVal, _ := strconv.ParseFloat(parts[1], 64)
+			szVal, _ := strconv.ParseFloat(parts[3], 64)
+			totalVal, _ := strconv.ParseFloat(parts[5], 64)
+			shInflow = shVal / 10000   // 万元转亿元
+			szInflow = szVal / 10000
+			netInflow = totalVal / 10000
+			break
+		}
+	}
 
 	return &NorthFundData{
 		NetInflow: netInflow,
@@ -1412,7 +1410,14 @@ func (m MarketNewsApi) GetMarketSentimentMultiDimensional() map[string]any {
 
 	// 4. 获取NLP情感分析（调用现有方法）
 	nlpResult, _ := NewsAnalyze("", false)
-	nlpScore := nlpResult.Score * 0.2 // 原有逻辑中的缩放
+	// 将NLP Score从 -10~10 归一化到 -100~100
+	nlpScore := nlpResult.Score * 10
+	if nlpScore > 100 {
+		nlpScore = 100
+	}
+	if nlpScore < -100 {
+		nlpScore = -100
+	}
 
 	// 5. 加权求和
 	totalScore := limitScore*0.30 + upDownScore*0.25 + northScore*0.20 + nlpScore*0.25
@@ -1465,56 +1470,66 @@ func (m MarketNewsApi) GetMarketSentimentMultiDimensional() map[string]any {
 }
 
 // GetIndustryHeatMap 获取行业热力图整合数据
+// 使用新浪资金流数据作为主数据源（包含涨跌幅和资金流）
 func (m MarketNewsApi) GetIndustryHeatMap() map[string]any {
 	result := make(map[string]any)
 
-	// 1. 获取行业排行（腾讯财经）
-	rankData := m.GetIndustryRank("desc", 30)
-
-	// 2. 获取行业资金流（新浪）
+	// 获取行业资金流（新浪）- 包含涨跌幅和资金流数据
 	moneyData := m.GetIndustryMoneyRankSina("0", "netamount") // 0=行业板块
 
 	// 整合数据
 	industries := make([]map[string]any, 0)
 	topConcepts := make([]string, 0, 8)
 
-	if data, ok := rankData["data"].([]any); ok {
-		for i, item := range data {
-			if row, ok := item.([]any); ok && len(row) >= 5 {
-				name := fmt.Sprintf("%v", row[1])
-				change, _ := strconv.ParseFloat(fmt.Sprintf("%v", row[2]), 64)
-				volume := fmt.Sprintf("%v", row[4])
+	for i, item := range moneyData {
+		name := ""
+		if n, ok := item["name"].(string); ok {
+			name = n
+		}
 
-				// 查找对应的资金流数据
-				netInflow := 0.0
-				for _, money := range moneyData {
-					if money["name"] == name {
-						if val, ok := money["netamount"].(string); ok {
-							netInflow, _ = strconv.ParseFloat(val, 64)
-						}
-						break
-					}
-				}
-
-				flowDirection := "in"
-				if netInflow < 0 {
-					flowDirection = "out"
-				}
-
-				industries = append(industries, map[string]any{
-					"name":          name,
-					"code":          fmt.Sprintf("%v", row[0]),
-					"change":        change,
-					"volume":        volume,
-					"netInflow":     netInflow,
-					"flowDirection": flowDirection,
-				})
-
-				// 取涨幅 Top 8 作为热门概念
-				if i < 8 && change > 0 {
-					topConcepts = append(topConcepts, name)
-				}
+		// 解析涨跌幅（新浪返回的是小数格式，如 0.0049629 表示 0.49629%）
+		change := 0.0
+		if val, ok := item["avg_changeratio"].(string); ok {
+			if parsed, err := strconv.ParseFloat(val, 64); err == nil {
+				change = parsed * 100 // 转换为百分比
 			}
+		}
+
+		// 解析资金净流入
+		netInflow := 0.0
+		if val, ok := item["netamount"].(string); ok {
+			netInflow, _ = strconv.ParseFloat(val, 64)
+		}
+
+		// 解析成交额/流通量
+		volume := "0"
+		if val, ok := item["turnover"].(string); ok {
+			volume = val
+		}
+
+		// 获取行业代码
+		code := ""
+		if val, ok := item["category"].(string); ok {
+			code = val
+		}
+
+		flowDirection := "in"
+		if netInflow < 0 {
+			flowDirection = "out"
+		}
+
+		industries = append(industries, map[string]any{
+			"name":          name,
+			"code":          code,
+			"change":        change,
+			"volume":        volume,
+			"netInflow":     netInflow,
+			"flowDirection": flowDirection,
+		})
+
+		// 取涨幅 Top 8 作为热门概念
+		if i < 8 {
+			topConcepts = append(topConcepts, name)
 		}
 	}
 
@@ -1550,11 +1565,13 @@ func (m MarketNewsApi) GetHotWords() []map[string]any {
 			trend = "down"
 		}
 
+		// 限制Score在 -9.9 ~ 9.9 范围内
+		clampedScore := math.Max(-9.9, math.Min(9.9, freq.Score))
 		hotWords = append(hotWords, map[string]any{
 			"word":   freq.Word,
 			"heat":   heat,
 			"trend":  trend,
-			"change": fmt.Sprintf("%+.0f%%", freq.Score),
+			"change": fmt.Sprintf("%+.1f%%", clampedScore),
 		})
 	}
 

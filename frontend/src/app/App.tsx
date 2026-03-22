@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useCompactLayout } from './hooks/useCompactLayout';
+import { LayoutShellProvider } from './context/LayoutShellContext';
 import { Sidebar } from './components/Sidebar';
 import { MarketTicker } from './components/MarketTicker';
 import { Dashboard } from './components/Dashboard';
@@ -10,12 +11,16 @@ import { StockFilter } from './components/StockFilter';
 import { Settings } from './components/Settings';
 import { AIAnalysis } from './components/AIAnalysis';
 import { LongTigerRank } from './components/LongTigerRank';
-import { Menu } from 'lucide-react';
 
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'watchlist', 'about', 'moneyflow', 'stockfilter', 'settings', 'aianalysis', 'longtiger'
   const compactLayout = useCompactLayout();
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'watchlist', 'about', 'moneyflow', 'stockfilter', 'settings', 'aianalysis', 'longtiger'
+  const [pendingAnalysisStock, setPendingAnalysisStock] = useState<{ code: string; name: string } | null>(null);
+
+  const handleNavigateToAIAnalysis = useCallback((stockCode: string, stockName: string) => {
+    setPendingAnalysisStock({ code: stockCode, name: stockName });
+    setCurrentView('aianalysis');
+  }, []);
 
   // Keep-Alive: 追踪已访问的页面
   const [visitedViews, setVisitedViews] = useState<Set<string>>(() => new Set(['dashboard']));
@@ -31,6 +36,7 @@ export default function App() {
   }, [currentView]);
 
   return (
+    <LayoutShellProvider compactLayout={compactLayout}>
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
       {/* 背景装饰 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -40,71 +46,21 @@ export default function App() {
       </div>
 
       <div className="relative flex h-screen">
-        {/* 移动端遮罩层 */}
-        {sidebarOpen && compactLayout && (
-          <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
         {/* 侧边栏 */}
         <Sidebar 
-          compactLayout={compactLayout}
-          isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)}
-          onDashboardClick={() => {
-            setCurrentView('dashboard');
-            setSidebarOpen(false);
-          }}
-          onWatchlistClick={() => {
-            setCurrentView('watchlist');
-            setSidebarOpen(false); // 移动端关闭侧边栏
-          }}
-          onAboutClick={() => {
-            setCurrentView('about');
-            setSidebarOpen(false);
-          }}
-          onMoneyFlowClick={() => {
-            setCurrentView('moneyflow');
-            setSidebarOpen(false);
-          }}
-          onStockFilterClick={() => {
-            setCurrentView('stockfilter');
-            setSidebarOpen(false);
-          }}
-          onSettingsClick={() => {
-            setCurrentView('settings');
-            setSidebarOpen(false);
-          }}
-          onAIAnalysisClick={() => {
-            setCurrentView('aianalysis');
-            setSidebarOpen(false);
-          }}
-          onLongTigerClick={() => {
-            setCurrentView('longtiger');
-            setSidebarOpen(false);
-          }}
+          onDashboardClick={() => setCurrentView('dashboard')}
+          onWatchlistClick={() => setCurrentView('watchlist')}
+          onAboutClick={() => setCurrentView('about')}
+          onMoneyFlowClick={() => setCurrentView('moneyflow')}
+          onStockFilterClick={() => setCurrentView('stockfilter')}
+          onSettingsClick={() => setCurrentView('settings')}
+          onAIAnalysisClick={() => setCurrentView('aianalysis')}
+          onLongTigerClick={() => setCurrentView('longtiger')}
           currentView={currentView}
         />
 
         {/* 主内容区 */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* 紧凑布局顶部栏（窄屏或手持设备） */}
-          {compactLayout && (
-            <div className="bg-slate-900/50 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between">
-              <button 
-                type="button"
-                onClick={() => setSidebarOpen(true)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <h1 className="text-lg font-light">金融看板</h1>
-              <div className="w-10" aria-hidden /> {/* 占位平衡 */}
-            </div>
-          )}
-
           {/* 市场指数滚动条 */}
           <MarketTicker />
 
@@ -116,7 +72,7 @@ export default function App() {
                 {visitedViews.has('dashboard') && <Dashboard />}
               </div>
               <div style={{ display: currentView === 'watchlist' ? 'block' : 'none' }}>
-                {visitedViews.has('watchlist') && <Watchlist />}
+                {visitedViews.has('watchlist') && <Watchlist onNavigateToAIAnalysis={handleNavigateToAIAnalysis} />}
               </div>
               <div style={{ display: currentView === 'about' ? 'block' : 'none' }}>
                 {visitedViews.has('about') && <AboutUs />}
@@ -131,7 +87,7 @@ export default function App() {
                 {visitedViews.has('settings') && <Settings />}
               </div>
               <div style={{ display: currentView === 'aianalysis' ? 'block' : 'none' }}>
-                {visitedViews.has('aianalysis') && <AIAnalysis />}
+                {visitedViews.has('aianalysis') && <AIAnalysis pendingStock={pendingAnalysisStock} onPendingStockConsumed={() => setPendingAnalysisStock(null)} />}
               </div>
               <div style={{ display: currentView === 'longtiger' ? 'block' : 'none' }}>
                 {visitedViews.has('longtiger') && <LongTigerRank />}
@@ -141,5 +97,6 @@ export default function App() {
         </div>
       </div>
     </div>
+    </LayoutShellProvider>
   );
 }

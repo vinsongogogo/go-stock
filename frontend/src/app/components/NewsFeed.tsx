@@ -1,5 +1,7 @@
 import { Radio, Newspaper, Globe, Clock, ChevronRight, Sparkles, RefreshCw, Calendar } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { useLayoutShell } from '../context/LayoutShellContext';
+import { cn } from './ui/utils';
 
 // Wails Go bridge
 const getApp = () => (window as any)?.go?.main?.App;
@@ -44,6 +46,7 @@ const CHANNELS = [
 ];
 
 function ChannelCard({ source, label, icon: Icon, color, event }: typeof CHANNELS[0]) {
+  const { compactLayout } = useLayoutShell();
   const [items, setItems] = useState<Telegraph[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -118,13 +121,26 @@ function ChannelCard({ source, label, icon: Icon, color, event }: typeof CHANNEL
               </span>
               <div className="flex-1 min-w-0">
                 {item.title ? (
-                  <p className={`text-[10px] sm:text-[11px] font-medium leading-snug line-clamp-1 md:line-clamp-none group-hover:text-white transition-colors ${
-                    item.isRed ? 'text-red-300' : 'text-gray-200'
-                  }`}>
+                  <p
+                    className={cn(
+                      "text-[10px] sm:text-[11px] font-medium leading-snug group-hover:text-white transition-colors",
+                      compactLayout
+                        ? "line-clamp-1 md:line-clamp-none"
+                        : "line-clamp-none",
+                      item.isRed ? "text-red-300" : "text-gray-200",
+                    )}
+                  >
                     {item.title}
                   </p>
                 ) : null}
-                <p className="text-[10px] sm:text-[11px] text-gray-400 leading-relaxed line-clamp-2 md:line-clamp-none group-hover:text-gray-300 transition-colors mt-0.5">
+                <p
+                  className={cn(
+                    "text-[10px] sm:text-[11px] text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors mt-0.5",
+                    compactLayout
+                      ? "line-clamp-2 md:line-clamp-none"
+                      : "line-clamp-none",
+                  )}
+                >
                   {item.content}
                 </p>
                 {/* 标签行 */}
@@ -247,6 +263,7 @@ function EventTimeline() {
 }
 
 export function NewsFeed() {
+  const { compactLayout } = useLayoutShell();
   const [now, setNow] = useState(() => new Date().toLocaleString('zh-CN', { hour12: false }));
 
   useEffect(() => {
@@ -270,7 +287,14 @@ export function NewsFeed() {
       </div>
 
       {/* 主内容区：4列（3个新闻频道 + 1个事件时间轴） */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+      <div
+        className={cn(
+          "grid gap-3 sm:gap-4",
+          compactLayout
+            ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
+            : "grid-cols-4",
+        )}
+      >
         {CHANNELS.slice(0, 3).map(ch => (
           <ChannelCard key={ch.source} {...ch} />
         ))}

@@ -1,5 +1,7 @@
 import { Flame, TrendingUp, TrendingDown, Zap, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { useLayoutShell } from '../context/LayoutShellContext';
+import { cn } from './ui/utils';
 
 // Wails Go bridge
 const getApp = () => (window as any)?.go?.main?.App;
@@ -23,6 +25,7 @@ interface HotWordItem {
 }
 
 export function TreeMap() {
+  const { compactLayout } = useLayoutShell();
   const [industries, setIndustries] = useState<IndustryItem[]>([]);
   const [topConcepts, setTopConcepts] = useState<string[]>([]);
   const [hotWords, setHotWords] = useState<HotWordItem[]>([]);
@@ -79,9 +82,14 @@ export function TreeMap() {
 
   return (
     <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 shadow-2xl hover:border-cyan-500/30 transition-all h-full">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 h-full">
+      <div
+        className={cn(
+          "grid gap-3 sm:gap-4 h-full",
+          compactLayout ? "grid-cols-1 md:grid-cols-3" : "grid-cols-3",
+        )}
+      >
         {/* 左侧：行业热力 - 动态数据 */}
-        <div className="md:col-span-2">
+        <div className={cn(compactLayout ? "md:col-span-2" : "col-span-2")}>
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <h3 className="text-sm text-cyan-400 tracking-wide flex items-center gap-2">
               <Flame className="w-4 h-4" />
@@ -176,7 +184,13 @@ export function TreeMap() {
         </div>
 
         {/* 右侧：24小时热词 - 动态数据 */}
-        <div className="md:border-l md:border-white/10 md:pl-3 xl:pl-4">
+        <div
+          className={cn(
+            compactLayout
+              ? "md:border-l md:border-white/10 md:pl-3 xl:pl-4"
+              : "border-l border-white/10 pl-4",
+          )}
+        >
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <h3 className="text-sm text-cyan-400 tracking-wide flex items-center gap-2">
               <Zap className="w-4 h-4" />

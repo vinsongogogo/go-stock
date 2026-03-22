@@ -2,10 +2,6 @@ import { TrendingUp, MessageSquare, Settings, ChevronDown, Filter, Brain, Star, 
 import { useState } from 'react';
 
 interface SidebarProps {
-  /** true：抽屉式侧边栏；false：常驻桌面侧栏 */
-  compactLayout: boolean;
-  isOpen: boolean;
-  onClose: () => void;
   onDashboardClick?: () => void;
   onWatchlistClick?: () => void;
   onAboutClick?: () => void;
@@ -17,7 +13,7 @@ interface SidebarProps {
   currentView?: string;
 }
 
-export function Sidebar({ compactLayout, isOpen, onClose, onDashboardClick, onWatchlistClick, onAboutClick, onMoneyFlowClick, onStockFilterClick, onSettingsClick, onAIAnalysisClick, onLongTigerClick, currentView }: SidebarProps) {
+export function Sidebar({ onDashboardClick, onWatchlistClick, onAboutClick, onMoneyFlowClick, onStockFilterClick, onSettingsClick, onAIAnalysisClick, onLongTigerClick, currentView }: SidebarProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>('行情中心');
 
   const menuItems = [
@@ -53,17 +49,8 @@ export function Sidebar({ compactLayout, isOpen, onClose, onDashboardClick, onWa
     }
   ];
 
-  // PC（非 compact）：侧栏参与 flex 流、始终可见；移动：fixed 抽屉，默认收起
-  const offscreen = compactLayout && !isOpen;
-
   return (
-    <div className={`
-      w-64 shrink-0 min-h-0 bg-slate-900/50 backdrop-blur-xl border-r border-white/10 flex flex-col
-      top-0 bottom-0 left-0 z-50
-      ${compactLayout ? 'fixed' : 'static'}
-      transform transition-transform duration-300 ease-in-out
-      ${offscreen ? '-translate-x-full' : 'translate-x-0'}
-    `}>
+    <div className="w-64 shrink-0 min-h-0 bg-slate-900/50 backdrop-blur-xl border-r border-white/10 flex flex-col">
       {/* 头部 Logo */}
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -158,9 +145,7 @@ export function Sidebar({ compactLayout, isOpen, onClose, onDashboardClick, onWa
           <MessageSquare className={`w-5 h-5 ${currentView === 'about' ? 'text-cyan-400' : 'text-gray-400'}`} />
           <span className={`text-sm ${currentView === 'about' ? 'text-cyan-400' : ''}`}>关于我们</span>
         </button>
-        <div className="pt-2 text-xs text-gray-500 text-center">
-          隐藏到托盘区
-        </div>
+
       </div>
     </div>
   );
