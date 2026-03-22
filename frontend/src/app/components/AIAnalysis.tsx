@@ -26,6 +26,7 @@ import {
   NewChatStream,
   SaveAIResponseResult,
   GetAIResponseResult,
+  GetAIResponseResultList,
   GetStockList,
   GetFollowList,
   GetDashboardPromptID
@@ -166,6 +167,16 @@ interface DashboardData {
 
 type AnalysisPhase = 'idle' | 'collecting' | 'analyzing' | 'generating' | 'completed' | 'aborted' | 'timeout' | 'error';
 
+interface HistoryRecord {
+  id: number;
+  content: string;
+  dashboardData: DashboardData | null;
+  structuredData: StructuredAnalysisData | null;
+  markdownContent: string;
+  modelName: string;
+  createdAt: string;
+}
+
 interface StockAnalysisState {
   stockCode: string;
   stockName: string;
@@ -176,6 +187,7 @@ interface StockAnalysisState {
   dashboardData: DashboardData | null;
   markdownContent: string;
   historyResult: models.AIResponseResult | null;
+  historyRecords: HistoryRecord[];
   showDetail: boolean;
   error: string;
   updatedAt: string;
@@ -443,6 +455,8 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
   const [selectedStockCode, setSelectedStockCode] = useState<string | null>(null);
   const [filterText, setFilterText] = useState('');
   const [showLogStockCode, setShowLogStockCode] = useState<string | null>(null);
+  const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number>(0);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
 
   // Refs
   const analyzingStocksRef = useRef<Set<string>>(new Set());
@@ -505,6 +519,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           dashboardData: null,
           markdownContent: '',
           historyResult: null,
+          historyRecords: [],
           showDetail: false,
           error: '',
           updatedAt: '',
@@ -619,6 +634,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         dashboardData: null,
         markdownContent: '',
         historyResult: null,
+        historyRecords: [],
         showDetail: false,
         error: '',
         updatedAt: '',
@@ -628,6 +644,51 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
     setSelectedStockCode(code);
     startSingleAnalysis(code, name);
   }, [pendingStock, loading]);
+
+  // =====================
+  // 加载股票的所有历史记录
+  // =====================
+  const loadStockHistory = useCallback(async (stockCode: string) => {
+    setLoadingHistory(true);
+    try {
+      const query = new models.AIResponseResultQuery({
+        stockCode: stockCode,
+        page: 1,
+        pageSize: 50,
+      });
+      const result = await GetAIResponseResultList(query);
+      if (result && result.list && result.list.length > 0) {
+        const records: HistoryRecord[] = result.list.map((item: models.AIResponseResult) => {
+          const { dashboardData } = parseDashboardData(item.content);
+          const { structured, markdown } = parseStructuredData(item.content);
+          return {
+            id: item.ID,
+            content: item.content,
+            dashboardData,
+            structuredData: structured,
+            markdownContent: markdown,
+            modelName: item.modelName || '',
+            createdAt: item.CreatedAt
+              ? new Date(item.CreatedAt).toLocaleString('zh-CN')
+              : '',
+          };
+        });
+        updateStockAnalysis(stockCode, { historyRecords: records });
+      }
+    } catch (err) {
+      console.error('加载历史记录失败:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [updateStockAnalysis]);
+
+  // 当选中股票变化时，加载其历史记录并重置选中索引
+  useEffect(() => {
+    if (selectedStockCode) {
+      setSelectedHistoryIndex(0);
+      loadStockHistory(selectedStockCode);
+    }
+  }, [selectedStockCode, loadStockHistory]);
 
   // =====================
   // 单股票分析流程
@@ -718,8 +779,10 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
             updatedAt: new Date().toLocaleString('zh-CN'),
           });
 
-          // 分析完成后自动选中该股票
+          // 分析完成后自动选中该股票并刷新历史
           setSelectedStockCode(stockCode);
+          // 延迟加载历史，确保后端保存完成
+          setTimeout(() => loadStockHistory(stockCode), 500);
 
           SaveAIResponseResult(
             stockCode,
@@ -772,7 +835,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         resolve();
       });
     });
-  }, [aiConfigs, selectedAiConfigId, dashboardPromptId, updateStockAnalysis]);
+  }, [aiConfigs, selectedAiConfigId, dashboardPromptId, updateStockAnalysis, loadStockHistory]);
 
   // =====================
   // 一键分析全部（串行队列）
@@ -818,6 +881,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         dashboardData: null,
         markdownContent: '',
         historyResult: null,
+        historyRecords: [],
         showDetail: false,
         error: '',
         updatedAt: '',
@@ -859,6 +923,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           dashboardData: null,
           markdownContent: '',
           historyResult: null,
+          historyRecords: [],
           showDetail: false,
           error: '',
           updatedAt: '',
@@ -1482,6 +1547,65 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
     );
   };
 
+  // 渲染历史记录切换器
+  const renderHistoryPicker = (stock: StockAnalysisState) => {
+    const records = stock.historyRecords;
+    if (!records || records.length <= 1) return null;
+
+    return (
+      <div className="flex items-center gap-2 flex-wrap">
+        <Clock className="w-3.5 h-3.5 text-gray-500" />
+        <span className="text-xs text-gray-500">历史记录:</span>
+        <div className="flex items-center gap-1 flex-wrap">
+          {records.map((record, index) => (
+            <button
+              key={record.id}
+              onClick={() => setSelectedHistoryIndex(index)}
+              className={`text-xs px-2 py-1 rounded transition-all ${
+                selectedHistoryIndex === index
+                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                  : 'text-gray-500 hover:text-gray-300 hover:bg-white/5 border border-transparent'
+              }`}
+              title={`${record.createdAt}${record.modelName ? ' · ' + record.modelName : ''}`}
+            >
+              {record.createdAt || `#${index + 1}`}
+            </button>
+          ))}
+        </div>
+        {loadingHistory && <Loader2 className="w-3 h-3 text-gray-500 animate-spin" />}
+      </div>
+    );
+  };
+
+  // 获取当前选中的历史记录的展示数据
+  const getDisplayData = (stock: StockAnalysisState): {
+    content: string;
+    dashboardData: DashboardData | null;
+    structuredData: StructuredAnalysisData | null;
+    markdownContent: string;
+    updatedAt: string;
+  } => {
+    const records = stock.historyRecords;
+    if (records && records.length > 0 && selectedHistoryIndex < records.length) {
+      const record = records[selectedHistoryIndex];
+      return {
+        content: record.content,
+        dashboardData: record.dashboardData,
+        structuredData: record.structuredData,
+        markdownContent: record.markdownContent,
+        updatedAt: record.createdAt,
+      };
+    }
+    // fallback 到当前状态
+    return {
+      content: stock.content,
+      dashboardData: stock.dashboardData,
+      structuredData: stock.structuredData,
+      markdownContent: stock.markdownContent,
+      updatedAt: stock.updatedAt,
+    };
+  };
+
   // 渲染右栏详情
   const renderDetail = () => {
     if (!selectedStock) {
@@ -1552,11 +1676,25 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
       );
     }
 
+    // 使用历史记录切换后的展示数据
+    const display = getDisplayData(selectedStock);
+
+    // 构建一个虚拟的 stock 对象用于渲染（合并历史数据）
+    const displayStock: StockAnalysisState = {
+      ...selectedStock,
+      content: display.content,
+      dashboardData: display.dashboardData,
+      structuredData: display.structuredData,
+      markdownContent: display.markdownContent,
+      updatedAt: display.updatedAt,
+    };
+
     // 有仪表盘数据
-    if (selectedStock.dashboardData) {
+    if (display.dashboardData) {
       return (
         <div className="space-y-4">
-          {renderDashboard(selectedStock)}
+          {renderHistoryPicker(selectedStock)}
+          {renderDashboard(displayStock)}
           <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
@@ -1567,16 +1705,17 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
               重新分析
             </button>
           </div>
-          {renderLogSection(selectedStock)}
+          {renderLogSection(displayStock)}
         </div>
       );
     }
 
     // 有结构化数据（旧格式）
-    if (selectedStock.structuredData) {
+    if (display.structuredData) {
       return (
         <div className="space-y-4">
-          {renderStructuredCard(selectedStock)}
+          {renderHistoryPicker(selectedStock)}
+          {renderStructuredCard(displayStock)}
           <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
@@ -1587,23 +1726,24 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
               重新分析
             </button>
           </div>
-          {renderLogSection(selectedStock)}
+          {renderLogSection(displayStock)}
         </div>
       );
     }
 
     // 有内容（纯 markdown fallback）
-    if (selectedStock.content) {
+    if (display.content) {
       return (
         <div className="space-y-4">
+          {renderHistoryPicker(selectedStock)}
           <div className="flex items-center gap-3 mb-4">
             <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
             <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
-            {selectedStock.updatedAt && (
-              <span className="text-xs text-gray-500">{selectedStock.updatedAt} 更新</span>
+            {display.updatedAt && (
+              <span className="text-xs text-gray-500">{display.updatedAt} 更新</span>
             )}
           </div>
-          {renderMarkdownSections(selectedStock.markdownContent || selectedStock.content)}
+          {renderMarkdownSections(display.markdownContent || display.content)}
           <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
