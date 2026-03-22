@@ -3,16 +3,17 @@ import { Settings as SettingsIcon, Save, Upload, Download } from 'lucide-react';
 import { GetConfig, UpdateConfig, ExportConfig, CheckSponsorCode, SendDingDingMessageByType } from '../../../wailsjs/go/main/App';
 import { data } from '../../../wailsjs/go/models';
 import { useLayoutShell } from '../context/LayoutShellContext';
+import { useTheme } from '../context/ThemeContext';
 import { cn } from './ui/utils';
 
 export function Settings() {
   const { compactLayout } = useLayoutShell();
+  const { isDark, setIsDark } = useTheme();
   // 基础设置
   const [configId, setConfigId] = useState<number>(1);
   const [tushareToken, setTushareToken] = useState('');
   const [updateBasicInfoOnStart, setUpdateBasicInfoOnStart] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(1);
-  const [darkTheme, setDarkTheme] = useState(true);
   const [browserPath, setBrowserPath] = useState('');
   const [enableFund, setEnableFund] = useState(false);
   const [enableAgent, setEnableAgent] = useState(false);
@@ -63,7 +64,7 @@ export function Settings() {
       setTushareToken(res.tushareToken || '');
       setUpdateBasicInfoOnStart(res.updateBasicInfoOnStart || false);
       setRefreshInterval(res.refreshInterval || 1);
-      setDarkTheme(res.darkTheme ?? true);
+      setIsDark(res.darkTheme ?? true);
       setBrowserPath(res.browserPath || '');
       setEnableFund(res.enableFund || false);
       setEnableAgent(res.enableAgent || false);
@@ -127,7 +128,7 @@ export function Settings() {
         enableDanmu,
         browserPath,
         enableNews,
-        darkTheme,
+        darkTheme: isDark,
         enableFund,
         enablePushNews,
         enableOnlyPushRedNews,
@@ -219,7 +220,7 @@ export function Settings() {
             setTushareToken(config.tushareToken || '');
             setUpdateBasicInfoOnStart(config.updateBasicInfoOnStart || false);
             setRefreshInterval(config.refreshInterval || 1);
-            setDarkTheme(config.darkTheme ?? true);
+            setIsDark(config.darkTheme ?? true);
             setBrowserPath(config.browserPath || '');
             setEnableFund(config.enableFund || false);
             setEnableAgent(config.enableAgent || false);
@@ -301,7 +302,7 @@ export function Settings() {
   // Toggle Switch 组件
   const ToggleSwitch = ({ checked, onChange, label }: { checked: boolean; onChange: (val: boolean) => void; label: string }) => (
     <div className="flex items-center justify-between py-2.5">
-      <span className="text-sm text-gray-300">{label}:</span>
+      <span className="text-sm text-muted-foreground">{label}:</span>
       <button
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -333,25 +334,25 @@ export function Settings() {
       {/* 加载状态 */}
       {loading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
-          <div className="bg-slate-800 px-6 py-4 rounded-lg text-white">加载中...</div>
+          <div className="bg-card border border-border px-6 py-4 rounded-lg text-foreground">加载中...</div>
         </div>
       )}
 
       {/* 头部 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/50">
-            <SettingsIcon className="w-6 h-6 text-white" />
+            <SettingsIcon className="w-6 h-6 text-foreground" />
           </div>
           <div>
-            <h2 className="text-xl text-white font-light">系统设置</h2>
-            <p className="text-xs text-gray-400">System Settings · Configuration</p>
+            <h2 className="text-xl text-foreground font-light">系统设置</h2>
+            <p className="text-xs text-muted-foreground">System Settings · Configuration</p>
           </div>
         </div>
       </div>
 
       {/* 基础设置 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl mt-2.5">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl mt-2.5">
         <div className="mb-4">
           <h3 className="text-base text-green-400 font-medium mb-3 border-b border-green-500/30 pb-2">基础设置</h3>
         </div>
@@ -360,31 +361,31 @@ export function Settings() {
           {/* Tushare Token + 开关 */}
           <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Tushare Token:</label>
+              <label className="block text-sm text-muted-foreground mb-2">Tushare Token:</label>
               <input
                 type="text"
                 value={tushareToken}
                 onChange={(e) => setTushareToken(e.target.value)}
                 placeholder="Tushare api token"
-                className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
               />
             </div>
             <div className="flex items-end gap-4">
               <ToggleSwitch checked={updateBasicInfoOnStart} onChange={setUpdateBasicInfoOnStart} label="启动时更新基础信息" />
-              <ToggleSwitch checked={darkTheme} onChange={setDarkTheme} label="暗黑主题" />
+              <ToggleSwitch checked={isDark} onChange={setIsDark} label="暗黑主题" />
             </div>
           </div>
 
           {/* 数据刷新间隔 */}
           <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <div>
-              <label className="block text-sm text-gray-300 mb-2">数据刷新间隔(秒):</label>
+              <label className="block text-sm text-muted-foreground mb-2">数据刷新间隔(秒):</label>
               <input
                 type="number"
                 min="1"
                 value={refreshInterval}
                 onChange={(e) => setRefreshInterval(parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
               />
             </div>
             <div className="flex items-end gap-4">
@@ -396,23 +397,23 @@ export function Settings() {
           {/* 浏览器安装路径 */}
           <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <div>
-              <label className="block text-sm text-gray-300 mb-2">浏览器安装路径:</label>
+              <label className="block text-sm text-muted-foreground mb-2">浏览器安装路径:</label>
               <input
                 type="text"
                 value={browserPath}
                 onChange={(e) => setBrowserPath(e.target.value)}
                 placeholder="浏览器安装路径"
-                className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-2">东财唯一标识:</label>
+              <label className="block text-sm text-muted-foreground mb-2">东财唯一标识:</label>
               <input
                 type="text"
                 value={qgqpBId}
                 onChange={(e) => setQgqpBId(e.target.value)}
                 placeholder="东财唯一标识"
-                className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
               />
             </div>
           </div>
@@ -420,14 +421,14 @@ export function Settings() {
           {/* 赞助码 */}
           <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
             <div>
-              <label className="block text-sm text-gray-300 mb-2">赞助码:</label>
+              <label className="block text-sm text-muted-foreground mb-2">赞助码:</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={sponsorCode}
                   onChange={(e) => setSponsorCode(e.target.value)}
                   placeholder="赞助码"
-                  className="flex-1 px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                  className="flex-1 px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                 />
                 <button 
                   onClick={handleVerifySponsorCode}
@@ -442,7 +443,7 @@ export function Settings() {
       </div>
 
       {/* 通知设置 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
         <div className="mb-4">
           <h3 className="text-base text-green-400 font-medium mb-3 border-b border-green-500/30 pb-2">通知设置</h3>
         </div>
@@ -477,14 +478,14 @@ export function Settings() {
           {dingPushEnable && (
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">钉钉机器人接口地址:</label>
+                <label className="block text-sm text-muted-foreground mb-2">钉钉机器人接口地址:</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={dingRobot}
                     onChange={(e) => setDingRobot(e.target.value)}
                     placeholder="请输入钉钉机器人接口地址"
-                    className="flex-1 px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                    className="flex-1 px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                   />
                   <button 
                     onClick={sendTestNotice}
@@ -500,7 +501,7 @@ export function Settings() {
       </div>
 
       {/* AI设置 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
         <div className="mb-4">
           <h3 className="text-base text-green-400 font-medium mb-3 border-b border-green-500/30 pb-2">AI设置</h3>
         </div>
@@ -522,24 +523,24 @@ export function Settings() {
                 )}
               >
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">Crawler Timeout(秒):</label>
+                  <label className="block text-sm text-muted-foreground mb-2">Crawler Timeout(秒):</label>
                   <input
                     type="number"
                     min="30"
                     value={crawlTimeOut}
                     onChange={(e) => setCrawlTimeOut(parseInt(e.target.value) || 30)}
-                    className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                    className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">日K线数据(天):</label>
+                  <label className="block text-sm text-muted-foreground mb-2">日K线数据(天):</label>
                   <input
                     type="number"
                     min="30"
                     max="60"
                     value={kDays}
                     onChange={(e) => setKDays(parseInt(e.target.value) || 30)}
-                    className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                    className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                   />
                 </div>
                 <div className="flex items-end">
@@ -547,59 +548,59 @@ export function Settings() {
                 </div>
                 {httpProxyEnabled && (
                   <div>
-                    <label className="block text-sm text-gray-300 mb-2">http代理地址:</label>
+                    <label className="block text-sm text-muted-foreground mb-2">http代理地址:</label>
                     <input
                       type="text"
                       value={httpProxy}
                       onChange={(e) => setHttpProxy(e.target.value)}
                       placeholder="爬虫http代理地址"
-                      className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                      className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                     />
                   </div>
                 )}
               </div>
 
               {/* 提示词设置分割线 */}
-              <div className="border-t border-white/10 pt-4 mt-4">
-                <span className="text-sm text-gray-400">默认提示词设置</span>
+              <div className="border-t border-border pt-4 mt-4">
+                <span className="text-sm text-muted-foreground">默认提示词设置</span>
               </div>
 
               {/* 提示词 */}
               <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">默认系统提示词:</label>
+                  <label className="block text-sm text-muted-foreground mb-2">默认系统提示词:</label>
                   <textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="请输入系统提示词"
                     rows={4}
-                    className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none"
+                    className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">默认个股分析提示词:</label>
+                  <label className="block text-sm text-muted-foreground mb-2">默认个股分析提示词:</label>
                   <textarea
                     value={questionTemplate}
                     onChange={(e) => setQuestionTemplate(e.target.value)}
                     placeholder="请输入个股分析提示词:例如{{stockName}}[{{stockCode}}]分析和总结"
                     rows={4}
-                    className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none"
+                    className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none"
                   />
                 </div>
               </div>
 
               {/* AI模型服务配置分割线 */}
-              <div className="border-t border-white/10 pt-4 mt-4">
-                <span className="text-sm text-gray-400">AI模型服务配置</span>
+              <div className="border-t border-border pt-4 mt-4">
+                <span className="text-sm text-muted-foreground">AI模型服务配置</span>
               </div>
 
               {/* AI 配置卡片列表 */}
               <div className="space-y-4">
                 {aiConfigs.map((aiConfig, index) => (
-                  <div key={index} className="bg-slate-800/40 rounded-lg border border-white/10 p-4">
+                  <div key={index} className="bg-muted/40 dark:bg-slate-800/40 rounded-lg border border-border p-4">
                     {/* 卡片头部 */}
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm text-gray-400">AI 配置 #{index + 1}</span>
+                      <span className="text-sm text-muted-foreground">AI 配置 #{index + 1}</span>
                       <button
                         onClick={() => removeAiConfig(index)}
                         className="px-3 py-1 bg-red-500/20 border border-red-500/30 rounded text-xs text-red-400 hover:bg-red-500/30"
@@ -611,78 +612,78 @@ export function Settings() {
                     {/* 配置字段 */}
                     <div className={cn("grid gap-4", compactLayout ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2")}>
                       <div>
-                        <label className="block text-sm text-gray-300 mb-2">配置名称:</label>
+                        <label className="block text-sm text-muted-foreground mb-2">配置名称:</label>
                         <input
                           type="text"
                           value={aiConfig.name || ''}
                           onChange={(e) => updateAiConfig(index, 'name', e.target.value)}
                           placeholder="配置名称"
-                          className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                          className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm text-gray-300 mb-2">接口地址:</label>
+                        <label className="block text-sm text-muted-foreground mb-2">接口地址:</label>
                         <input
                           type="text"
                           value={aiConfig.baseUrl || ''}
                           onChange={(e) => updateAiConfig(index, 'baseUrl', e.target.value)}
                           placeholder="AI接口地址"
-                          className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                          className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm text-gray-300 mb-2">令牌(apiKey):</label>
+                        <label className="block text-sm text-muted-foreground mb-2">令牌(apiKey):</label>
                         <input
                           type="password"
                           value={aiConfig.apiKey || ''}
                           onChange={(e) => updateAiConfig(index, 'apiKey', e.target.value)}
                           placeholder="apiKey"
-                          className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                          className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm text-gray-300 mb-2">模型名称:</label>
+                        <label className="block text-sm text-muted-foreground mb-2">模型名称:</label>
                         <input
                           type="text"
                           value={aiConfig.modelName || ''}
                           onChange={(e) => updateAiConfig(index, 'modelName', e.target.value)}
                           placeholder="AI模型名称"
-                          className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                          className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm text-gray-300 mb-2">Temperature:</label>
+                        <label className="block text-sm text-muted-foreground mb-2">Temperature:</label>
                         <input
                           type="number"
                           step="0.1"
                           value={aiConfig.temperature ?? 0.1}
                           onChange={(e) => updateAiConfig(index, 'temperature', parseFloat(e.target.value))}
-                          className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                          className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm text-gray-300 mb-2">MaxTokens:</label>
+                        <label className="block text-sm text-muted-foreground mb-2">MaxTokens:</label>
                         <input
                           type="number"
                           value={aiConfig.maxTokens ?? 8192}
                           onChange={(e) => updateAiConfig(index, 'maxTokens', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                          className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm text-gray-300 mb-2">Timeout(秒):</label>
+                        <label className="block text-sm text-muted-foreground mb-2">Timeout(秒):</label>
                         <input
                           type="number"
                           min="60"
                           value={aiConfig.timeOut ?? 6000}
                           onChange={(e) => updateAiConfig(index, 'timeOut', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                          className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                         />
                       </div>
                       
@@ -700,13 +701,13 @@ export function Settings() {
                             compactLayout ? "md:col-span-2" : "col-span-2",
                           )}
                         >
-                          <label className="block text-sm text-gray-300 mb-2">http代理地址:</label>
+                          <label className="block text-sm text-muted-foreground mb-2">http代理地址:</label>
                           <input
                             type="text"
                             value={aiConfig.httpProxy || ''}
                             onChange={(e) => updateAiConfig(index, 'httpProxy', e.target.value)}
                             placeholder="http代理地址"
-                            className="w-full px-3 py-2 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                            className="w-full px-3 py-2 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
                           />
                         </div>
                       )}
@@ -728,7 +729,7 @@ export function Settings() {
       </div>
 
       {/* 操作按钮 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
         <div className="flex flex-wrap gap-3 justify-center">
           <button
             onClick={handleSave}
@@ -758,8 +759,8 @@ export function Settings() {
       </div>
 
       {/* 说明 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
-        <div className="text-xs text-gray-400 space-y-1">
+      <div className="bg-card rounded-xl border border-border p-4 shadow-2xl">
+        <div className="text-xs text-muted-foreground space-y-1">
           <p>• 配置信息保存在后端数据库中</p>
           <p>• 导出配置可将当前设置保存为JSON文件</p>
           <p>• 导入配置可从JSON文件恢复之前的设置，导入后需点击保存</p>

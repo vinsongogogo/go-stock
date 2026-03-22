@@ -4,6 +4,7 @@ import { GetStockList, StockNotice } from '../../../../wailsjs/go/main/App';
 import { BrowserOpenURL } from '../../../../wailsjs/runtime/runtime';
 import { KLineChart } from '../KLineChart';
 import { MoneyTrend } from '../MoneyTrend';
+import { useTheme } from '../../context/ThemeContext';
 
 function getMarketCode(market: string, code: string): string {
   if (market === '0') return `sz${code}`;
@@ -24,12 +25,13 @@ function getTypeClass(name: string): string {
   if (/回购|重组|诉讼|仲裁|转让|收购|调研|募集/.test(name)) {
     return 'text-amber-400';
   }
-  return 'text-slate-300';
+  return 'text-muted-foreground';
 }
 
 type NoticeRow = Record<string, unknown>;
 
 export function StockNoticePanel() {
+  const { isDark } = useTheme();
   const [rows, setRows] = useState<NoticeRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -129,16 +131,16 @@ export function StockNoticePanel() {
 
   return (
     <div className="space-y-3">
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-3 shadow-2xl flex flex-wrap items-center gap-2">
+      <div className="bg-card rounded-xl border border-border p-3 shadow-2xl flex flex-wrap items-center gap-2">
         <input
           type="text"
           value={search}
           onChange={(e) => onSearchInput(e.target.value)}
           placeholder="输入 A 股名称或代码"
-          className="flex-1 min-w-[200px] bg-slate-800/80 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500"
+          className="flex-1 min-w-[200px] bg-input-background border border-input rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
         />
         {options.length > 0 && (
-          <div className="w-full max-h-40 overflow-y-auto rounded-lg border border-white/10 bg-slate-900/95 text-xs">
+          <div className="w-full max-h-40 overflow-y-auto rounded-lg border border-border bg-popover text-xs">
             {options.map((o) => (
               <button
                 key={o.value}
@@ -161,7 +163,7 @@ export function StockNoticePanel() {
         </button>
       </div>
 
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
         {loading && (
           <div className="flex items-center justify-center py-10 text-cyan-400 text-xs gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -172,7 +174,7 @@ export function StockNoticePanel() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px]">
               <thead>
-                <tr className="border-b border-white/10">
+                <tr className="border-b border-border">
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">股票代码</th>
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">股票名称</th>
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">公告标题</th>
@@ -194,7 +196,7 @@ export function StockNoticePanel() {
                   const nd = String(item.notice_date ?? '');
                   const dt = String(item.display_time ?? '');
                   return (
-                    <tr key={artCode + title} className="border-b border-white/5 hover:bg-white/5">
+                    <tr key={artCode + title} className="border-b border-border/60 hover:bg-accent/40 dark:hover:bg-white/5">
                       <td className="px-3 py-2">
                         {c0 ? (
                           <button
@@ -246,7 +248,7 @@ export function StockNoticePanel() {
 
       {hoverK && (
         <div
-          className="fixed z-50 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-3"
+          className="fixed z-50 bg-popover border border-border rounded-xl shadow-2xl p-3"
           style={{
             left: Math.min(pos.x + 16, window.innerWidth - 820),
             top: Math.min(pos.y, window.innerHeight - 520),
@@ -258,12 +260,12 @@ export function StockNoticePanel() {
             setHoverK(null);
           }}
         >
-          <KLineChart code={hoverK.code} stockName={hoverK.name} kDays={20} chartHeight={460} darkTheme />
+          <KLineChart code={hoverK.code} stockName={hoverK.name} kDays={20} chartHeight={460} darkTheme={isDark} />
         </div>
       )}
       {hoverM && (
         <div
-          className="fixed z-50 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-3"
+          className="fixed z-50 bg-popover border border-border rounded-xl shadow-2xl p-3"
           style={{
             left: Math.min(pos.x + 16, window.innerWidth - 820),
             top: Math.min(pos.y, window.innerHeight - 520),
@@ -275,7 +277,7 @@ export function StockNoticePanel() {
             setHoverM(null);
           }}
         >
-          <MoneyTrend code={hoverM.code} name={hoverM.name} days={360} chartHeight={460} darkTheme />
+          <MoneyTrend code={hoverM.code} name={hoverM.name} days={360} chartHeight={460} darkTheme={isDark} />
         </div>
       )}
     </div>

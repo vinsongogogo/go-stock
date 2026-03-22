@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { GetIndustryMoneyRankSina, GetIndustryRank } from '../../../../wailsjs/go/main/App';
 import { KLineChart } from '../KLineChart';
 import { SubMenu } from '../SubMenu';
+import { useTheme } from '../../context/ThemeContext';
 
 type IndustryTab = 'gain' | 'money0' | 'money2' | 'money1';
 
@@ -19,6 +20,7 @@ function num(v: unknown): number {
 }
 
 export function IndustryRankPanel() {
+  const { isDark } = useTheme();
   const [tab, setTab] = useState<IndustryTab>('gain');
   const [sort, setSort] = useState<'0' | '1'>('0');
   const [gainRows, setGainRows] = useState<Record<string, unknown>[]>([]);
@@ -110,7 +112,7 @@ export function IndustryRankPanel() {
         }}
       />
 
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
         {loading && (
           <div className="flex items-center justify-center py-8 text-cyan-400 text-xs gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -121,7 +123,7 @@ export function IndustryRankPanel() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/10">
+                <tr className="border-b border-border">
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">行业名称</th>
                   <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-400">
                     <button
@@ -147,7 +149,7 @@ export function IndustryRankPanel() {
                   const nz = num(item.nzg_zdf);
                   const nzUp = nz > 0;
                   return (
-                    <tr key={String(item.bd_code)} className="border-b border-white/5 hover:bg-white/5">
+                    <tr key={String(item.bd_code)} className="border-b border-border/60 hover:bg-accent/40 dark:hover:bg-white/5">
                       <td className="px-3 py-2 text-xs text-cyan-400/90">{String(item.bd_name ?? '')}</td>
                       <td className={`px-3 py-2 text-right text-xs ${up ? 'text-red-400' : 'text-green-400'}`}>
                         {z}%
@@ -182,7 +184,7 @@ export function IndustryRankPanel() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px]">
               <thead>
-                <tr className="border-b border-white/10">
+                <tr className="border-b border-border">
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">板块名称</th>
                   <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-400">涨跌幅</th>
                   <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-400">流入资金/万</th>
@@ -202,7 +204,7 @@ export function IndustryRankPanel() {
                   const tsZ = num(item.ts_changeratio);
                   const tsUp = tsZ > 0;
                   return (
-                    <tr key={String(item.category ?? item.name)} className="border-b border-white/5 hover:bg-white/5">
+                    <tr key={String(item.category ?? item.name)} className="border-b border-border/60 hover:bg-accent/40 dark:hover:bg-white/5">
                       <td className="px-3 py-2 text-xs text-cyan-400/90">{String(item.name ?? '')}</td>
                       <td className={`px-3 py-2 text-right text-xs ${num(item.avg_changeratio) > 0 ? 'text-red-400' : 'text-green-400'}`}>
                         {(num(item.avg_changeratio) * 100).toFixed(2)}%
@@ -247,7 +249,7 @@ export function IndustryRankPanel() {
 
       {hover && (
         <div
-          className="fixed z-50 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-3"
+          className="fixed z-50 bg-popover border border-border rounded-xl shadow-2xl p-3"
           style={{
             left: Math.min(pos.x + 16, window.innerWidth - 820),
             top: Math.min(pos.y, window.innerHeight - 520),
@@ -257,7 +259,7 @@ export function IndustryRankPanel() {
           onMouseEnter={() => clearHide()}
           onMouseLeave={() => setHover(null)}
         >
-          <KLineChart code={hover.code} stockName={hover.name} kDays={20} chartHeight={460} darkTheme />
+          <KLineChart code={hover.code} stockName={hover.name} kDays={20} chartHeight={460} darkTheme={isDark} />
         </div>
       )}
     </div>

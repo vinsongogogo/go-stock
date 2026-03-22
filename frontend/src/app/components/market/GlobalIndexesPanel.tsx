@@ -56,7 +56,7 @@ export function GlobalIndexesPanel() {
   }, [load]);
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden p-3 sm:p-4">
+    <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden p-3 sm:p-4">
       {loading && !data && (
         <div className="flex items-center justify-center py-12 text-cyan-400 text-xs gap-2">
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -70,9 +70,9 @@ export function GlobalIndexesPanel() {
             return (
               <div
                 key={key}
-                className="rounded-lg border border-white/10 bg-slate-900/30 overflow-hidden"
+                className="rounded-lg border border-border bg-muted dark:bg-slate-900 overflow-hidden"
               >
-                <div className="px-3 py-2 border-b border-white/10 text-xs font-medium text-cyan-400/90">
+                <div className="px-3 py-2 border-b border-border text-xs font-medium text-cyan-600 dark:text-cyan-400/90">
                   {LABELS[key]}
                 </div>
                 <ul className="divide-y divide-white/5 max-h-[420px] overflow-y-auto">

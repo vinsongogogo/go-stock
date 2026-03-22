@@ -23,9 +23,9 @@ function StrategyItem({ label, value, colorVar }: StrategyItemProps) {
     : '—';
 
   return (
-    <div className="relative bg-slate-800/40 rounded-lg p-3 border border-white/5">
+    <div className="relative bg-muted/50 dark:bg-slate-800/40 rounded-lg p-3 border border-border/60">
       <div className="flex flex-col">
-        <span className="text-xs text-gray-400 mb-1">{label}</span>
+        <span className="text-xs text-muted-foreground mb-1">{label}</span>
         <span
           className="text-lg font-bold font-mono"
           style={{ color: value ? `var(${colorVar})` : 'rgb(107, 114, 128)' }}
@@ -65,8 +65,8 @@ export function StrategyPoints({ points }: StrategyPointsProps) {
   return (
     <div style={cssVars}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs uppercase tracking-wider text-gray-400">STRATEGY POINTS</span>
-        <span className="text-sm font-medium text-white">狙击点位</span>
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">STRATEGY POINTS</span>
+        <span className="text-sm font-medium text-foreground">狙击点位</span>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {items.map((item) => (

@@ -59,22 +59,22 @@ export function Pagination({
   };
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 px-4 py-2.5 shadow-2xl">
+    <div className="bg-card dark:bg-slate-900 rounded-xl border border-border px-4 py-2.5 shadow-md">
       <div className="flex items-center justify-between gap-4">
         {/* 左侧：额外内容 + 信息显示 */}
-        <div className="flex items-center gap-4 text-xs text-gray-400">
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
           {extra}
           <div>
-            显示 <span className="text-cyan-400 font-medium">{startItem}</span> 至{' '}
-            <span className="text-cyan-400 font-medium">{endItem}</span> 条，共{' '}
-            <span className="text-cyan-400 font-medium">{totalItems}</span> 条
+            显示 <span className="text-cyan-600 dark:text-cyan-400 font-medium">{startItem}</span> 至{' '}
+            <span className="text-cyan-600 dark:text-cyan-400 font-medium">{endItem}</span> 条，共{' '}
+            <span className="text-cyan-600 dark:text-cyan-400 font-medium">{totalItems}</span> 条
           </div>
           <div className="flex items-center gap-2">
             <span>每页</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="px-2 py-1 bg-slate-800/60 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-cyan-500/50"
+              className="px-2 py-1 bg-input-background border border-input rounded text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -91,20 +91,20 @@ export function Pagination({
           <button
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
-            className="p-1.5 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-border bg-background hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             title="首页"
           >
-            <ChevronsLeft className="w-4 h-4 text-gray-400" />
+            <ChevronsLeft className="w-4 h-4 text-muted-foreground" />
           </button>
 
           {/* 上一页 */}
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="p-1.5 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-border bg-background hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             title="上一页"
           >
-            <ChevronLeft className="w-4 h-4 text-gray-400" />
+            <ChevronLeft className="w-4 h-4 text-muted-foreground" />
           </button>
 
           {/* 页码 */}
@@ -112,7 +112,7 @@ export function Pagination({
             {getPageNumbers().map((page, index) => {
               if (page === '...') {
                 return (
-                  <span key={`ellipsis-${index}`} className="px-2 py-1 text-xs text-gray-500">
+                  <span key={`ellipsis-${index}`} className="px-2 py-1 text-xs text-muted-foreground">
                     ...
                   </span>
                 );
@@ -124,8 +124,8 @@ export function Pagination({
                   onClick={() => onPageChange(page as number)}
                   className={`min-w-[32px] px-2 py-1 rounded-lg text-xs transition-all ${
                     currentPage === page
-                      ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-medium'
-                      : 'border border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+                      ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-700 dark:text-cyan-400 font-medium'
+                      : 'border border-border text-muted-foreground hover:bg-accent hover:text-foreground'
                   }`}
                 >
                   {page}
@@ -138,30 +138,30 @@ export function Pagination({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="p-1.5 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-border bg-background hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             title="下一页"
           >
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
 
           {/* 末页 */}
           <button
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}
-            className="p-1.5 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-border bg-background hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             title="末页"
           >
-            <ChevronsRight className="w-4 h-4 text-gray-400" />
+            <ChevronsRight className="w-4 h-4 text-muted-foreground" />
           </button>
 
           {/* 跳转 */}
-          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/10">
-            <span className="text-xs text-gray-400">跳至</span>
+          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
+            <span className="text-xs text-muted-foreground">跳至</span>
             <input
               type="number"
               min={1}
               max={totalPages}
-              className="w-14 px-2 py-1 bg-slate-800/60 border border-white/10 rounded text-xs text-white text-center focus:outline-none focus:border-cyan-500/50"
+              className="w-14 px-2 py-1 bg-input-background border border-input rounded text-xs text-foreground text-center focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   const value = parseInt((e.target as HTMLInputElement).value);
@@ -173,7 +173,7 @@ export function Pagination({
               }}
               placeholder={currentPage.toString()}
             />
-            <span className="text-xs text-gray-400">页</span>
+            <span className="text-xs text-muted-foreground">页</span>
           </div>
         </div>
       </div>

@@ -83,9 +83,9 @@ function ChannelCard({ source, label, icon: Icon, color, event }: typeof CHANNEL
   };
 
   return (
-    <div className="bg-slate-800/30 backdrop-blur rounded-xl border border-white/5 p-2.5 sm:p-3 hover:border-cyan-500/30 transition-all flex flex-col min-h-[320px]">
+    <div className="bg-card dark:bg-slate-900 rounded-xl border border-border p-2.5 sm:p-3 hover:border-cyan-500/30 transition-all flex flex-col min-h-[320px]">
       {/* 频道标题 */}
-      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/5">
+      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-border">
         <div className="flex items-center gap-1.5">
           <div className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-gradient-to-r ${color}`}></div>
           <Icon className="w-3.5 h-3.5 text-gray-400" />
@@ -215,8 +215,8 @@ function EventTimeline() {
   };
 
   return (
-    <div className="bg-slate-800/30 backdrop-blur rounded-xl border border-white/5 p-2.5 sm:p-3 hover:border-cyan-500/30 transition-all flex flex-col min-h-[320px]">
-      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/5">
+    <div className="bg-card dark:bg-slate-900 rounded-xl border border-border p-2.5 sm:p-3 hover:border-cyan-500/30 transition-all flex flex-col min-h-[320px]">
+      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-border">
         <div className="flex items-center gap-1.5">
           <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600"></div>
           <Calendar className="w-3.5 h-3.5 text-gray-400" />
@@ -274,7 +274,7 @@ export function NewsFeed() {
   }, []);
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-5 shadow-2xl">
+    <div className="bg-card dark:bg-slate-900 rounded-2xl border border-border p-4 sm:p-5 shadow-md">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h3 className="text-base sm:text-lg text-cyan-400 tracking-wide flex items-center gap-2">
           <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />

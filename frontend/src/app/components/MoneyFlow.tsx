@@ -24,14 +24,14 @@ export function MoneyFlow({ activeTab: activeTabProp }: MoneyFlowProps = {}) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/50">
-            <TrendingUp className="w-6 h-6 text-white" />
+            <TrendingUp className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-xl text-white font-light">{meta?.label ?? '行情'}</h2>
-            <p className="text-xs text-gray-400">{meta?.desc}</p>
+            <h2 className="text-xl text-foreground font-light">{meta?.label ?? '行情'}</h2>
+            <p className="text-xs text-muted-foreground">{meta?.desc}</p>
           </div>
         </div>
       </div>

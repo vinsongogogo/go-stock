@@ -65,15 +65,15 @@ export function Sidebar({
   ];
 
   return (
-    <div className="w-64 shrink-0 min-h-0 bg-slate-900/50 backdrop-blur-xl border-r border-white/10 flex flex-col">
-      <div className="p-6 border-b border-white/10">
+    <div className="w-64 shrink-0 min-h-0 bg-card dark:bg-slate-950 border-r border-border flex flex-col">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/50">
-            <TrendingUp className="w-7 h-7 text-white" />
+            <TrendingUp className="w-7 h-7 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-light tracking-wide text-white">金融看板</h1>
-            <p className="text-xs text-gray-400">Financial Dashboard</p>
+            <h1 className="text-xl font-light tracking-wide text-foreground">金融看板</h1>
+            <p className="text-xs text-muted-foreground">Financial Dashboard</p>
           </div>
         </div>
       </div>
@@ -101,39 +101,53 @@ export function Sidebar({
                 else if (item.label === '龙虎榜') onLongTigerClick?.();
                 else if (item.label === 'AI股票分析') onAIAnalysisClick?.();
               }}
-              className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-all group ${
-                isActive ? 'bg-white/5 border-l-2 border-cyan-400' : ''
+              className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-accent/60 dark:hover:bg-white/5 transition-all group ${
+                isActive ? 'bg-accent/80 dark:bg-white/5 border-l-2 border-cyan-600 dark:border-cyan-400' : ''
               }`}
             >
               <Icon
                 className={`w-5 h-5 transition-colors ${
-                  isActive ? 'text-cyan-400' : 'text-gray-400 group-hover:text-cyan-400'
+                  isActive ? 'text-cyan-600 dark:text-cyan-400' : 'text-muted-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400'
                 }`}
               />
-              <span className={`flex-1 text-left text-sm ${isActive ? 'text-cyan-400' : ''}`}>{item.label}</span>
+              <span
+                className={`flex-1 text-left text-sm text-foreground ${isActive ? 'text-cyan-700 dark:text-cyan-400' : ''}`}
+              >
+                {item.label}
+              </span>
             </button>
           );
         })}
       </div>
 
-      <div className="p-4 border-t border-white/10 space-y-2">
+      <div className="p-4 border-t border-border space-y-2">
         <button
           onClick={onSettingsClick}
-          className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-white/5 rounded-lg transition-all ${
-            currentView === 'settings' ? 'bg-white/10' : ''
+          className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-accent/60 dark:hover:bg-white/5 rounded-lg transition-all ${
+            currentView === 'settings' ? 'bg-accent dark:bg-white/10' : ''
           }`}
         >
-          <Settings className={`w-5 h-5 ${currentView === 'settings' ? 'text-cyan-400' : 'text-gray-400'}`} />
-          <span className={`text-sm ${currentView === 'settings' ? 'text-cyan-400' : ''}`}>系统设置</span>
+          <Settings
+            className={`w-5 h-5 ${currentView === 'settings' ? 'text-cyan-600 dark:text-cyan-400' : 'text-muted-foreground'}`}
+          />
+          <span
+            className={`text-sm text-foreground ${currentView === 'settings' ? 'text-cyan-700 dark:text-cyan-400' : ''}`}
+          >
+            系统设置
+          </span>
         </button>
         <button
           onClick={onAboutClick}
-          className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-white/5 rounded-lg transition-all ${
-            currentView === 'about' ? 'bg-white/10' : ''
+          className={`w-full px-4 py-2 flex items-center gap-3 hover:bg-accent/60 dark:hover:bg-white/5 rounded-lg transition-all ${
+            currentView === 'about' ? 'bg-accent dark:bg-white/10' : ''
           }`}
         >
-          <MessageSquare className={`w-5 h-5 ${currentView === 'about' ? 'text-cyan-400' : 'text-gray-400'}`} />
-          <span className={`text-sm ${currentView === 'about' ? 'text-cyan-400' : ''}`}>关于我们</span>
+          <MessageSquare
+            className={`w-5 h-5 ${currentView === 'about' ? 'text-cyan-600 dark:text-cyan-400' : 'text-muted-foreground'}`}
+          />
+          <span className={`text-sm text-foreground ${currentView === 'about' ? 'text-cyan-700 dark:text-cyan-400' : ''}`}>
+            关于我们
+          </span>
         </button>
       </div>
     </div>

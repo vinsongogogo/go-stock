@@ -81,7 +81,7 @@ export function TreeMap() {
   }, [fetchIndustry, fetchHotWords]);
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 shadow-2xl hover:border-cyan-500/30 transition-all h-full">
+    <div className="bg-card dark:bg-slate-900 rounded-2xl border border-border p-3 sm:p-4 shadow-md hover:border-cyan-500/30 transition-all h-full">
       <div
         className={cn(
           "grid gap-3 sm:gap-4 h-full",
@@ -127,7 +127,7 @@ export function TreeMap() {
               return (
                 <div
                   key={sector.code || index}
-                  className={`relative rounded-xl p-2 sm:p-3 backdrop-blur border border-white/10 hover:scale-105 transition-all cursor-pointer group overflow-hidden ${colorClass}`}
+                  className={`relative rounded-xl p-2 sm:p-3 border border-border hover:scale-105 transition-all cursor-pointer group overflow-hidden ${colorClass}`}
                   style={{ boxShadow: `0 0 20px ${glowColor}` }}
                 >
                   {/* 动态光效 */}
@@ -166,7 +166,7 @@ export function TreeMap() {
               Array.from({ length: 8 }).map((_, index) => (
                 <div
                   key={index}
-                  className="bg-slate-800/40 backdrop-blur rounded-lg p-1 sm:p-1.5 text-center border border-white/5"
+                  className="bg-muted dark:bg-slate-800 rounded-lg p-1 sm:p-1.5 text-center border border-border"
                 >
                   <span className="text-[9px] sm:text-[10px] text-gray-600">--</span>
                 </div>
@@ -175,7 +175,7 @@ export function TreeMap() {
             {topConcepts.map((item, index) => (
               <div
                 key={index}
-                className="bg-slate-800/40 backdrop-blur rounded-lg p-1 sm:p-1.5 text-center hover:bg-cyan-500/20 hover:border-cyan-500/50 border border-white/5 transition-all cursor-pointer group"
+                className="bg-muted dark:bg-slate-800 rounded-lg p-1 sm:p-1.5 text-center hover:bg-cyan-500/20 hover:border-cyan-500/50 border border-border transition-all cursor-pointer group"
               >
                 <span className="text-[9px] sm:text-[10px] text-gray-400 group-hover:text-cyan-400 truncate block">{item}</span>
               </div>
@@ -219,7 +219,7 @@ export function TreeMap() {
             {hotWords.slice(0, 8).map((item, index) => (
               <div
                 key={index}
-                className="bg-slate-800/30 backdrop-blur rounded-lg p-1.5 sm:p-2 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer group"
+                className="bg-muted dark:bg-slate-800 rounded-lg p-1.5 sm:p-2 border border-border hover:border-cyan-500/30 transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-0.5">
                   <div className="flex items-center gap-1.5">

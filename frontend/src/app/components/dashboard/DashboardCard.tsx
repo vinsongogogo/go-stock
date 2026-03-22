@@ -13,12 +13,13 @@ export function DashboardCard({
   className = '',
   padding = 'md',
 }: DashboardCardProps) {
-  const baseStyles = 'rounded-xl backdrop-blur-xl';
+  const baseStyles = 'rounded-xl';
 
   const variantStyles = {
-    default: 'bg-slate-900/40 border border-white/10',
-    gradient: 'bg-gradient-to-br from-slate-900/60 to-slate-800/40 border border-white/10',
-    bordered: 'bg-slate-900/30 border border-cyan-500/20 shadow-lg shadow-cyan-500/5',
+    default: 'bg-card border border-border',
+    gradient:
+      'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-border',
+    bordered: 'bg-card border border-cyan-500/20 shadow-lg shadow-cyan-500/5',
   };
 
   const paddingStyles = {

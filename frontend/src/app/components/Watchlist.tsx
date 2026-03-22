@@ -252,7 +252,7 @@ export function Watchlist({ onNavigateToAIAnalysis }: WatchlistProps) {
     <div className="space-y-4 sm:space-y-6">
     <div className="space-y-3">
       {/* 头部：z-10 保证展开的筛选项浮在下方列表之上 */}
-      <div className="relative z-10 bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-3 sm:p-4 shadow-2xl">
+      <div className="relative z-10 bg-card dark:bg-slate-900 rounded-xl border border-border p-3 sm:p-4 shadow-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/50">
@@ -338,7 +338,7 @@ export function Watchlist({ onNavigateToAIAnalysis }: WatchlistProps) {
         {displayList.map((stock) => (
           <div
             key={stock.code}
-            className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-2 sm:p-3 hover:border-cyan-500/30 transition-all group relative shadow-2xl"
+            className="bg-card dark:bg-slate-900 rounded-xl border border-border p-2 sm:p-3 hover:border-cyan-500/30 transition-all group relative shadow-md"
           >
             {/* 取消关注按钮 */}
             <button
@@ -420,7 +420,7 @@ export function Watchlist({ onNavigateToAIAnalysis }: WatchlistProps) {
 
       {/* 空状态 */}
       {!loading && stockCodes.length === 0 && (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-12 text-center shadow-2xl">
+        <div className="bg-card dark:bg-slate-900 rounded-xl border border-border p-12 text-center shadow-md">
           <TrendingUp className="w-12 h-12 text-gray-600 mx-auto mb-3" />
           <p className="text-gray-400 text-sm">还没有添加自选股票</p>
           <button
@@ -435,7 +435,7 @@ export function Watchlist({ onNavigateToAIAnalysis }: WatchlistProps) {
 
       {/* 加载状态 */}
       {loading && stockCodes.length === 0 && (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-12 text-center shadow-2xl">
+        <div className="bg-card dark:bg-slate-900 rounded-xl border border-border p-12 text-center shadow-md">
           <Loader2 className="w-10 h-10 text-cyan-400 mx-auto mb-3 animate-spin" />
           <p className="text-gray-400 text-sm">正在加载自选股票...</p>
         </div>

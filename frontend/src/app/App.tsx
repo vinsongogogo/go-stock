@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useCompactLayout } from './hooks/useCompactLayout';
 import { LayoutShellProvider } from './context/LayoutShellContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Sidebar } from './components/Sidebar';
 import { MarketTicker } from './components/MarketTicker';
 import { Dashboard } from './components/Dashboard';
@@ -37,13 +38,14 @@ export default function App() {
   }, [currentView]);
 
   return (
+    <ThemeProvider>
     <LayoutShellProvider compactLayout={compactLayout}>
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
+    <div className="min-h-screen text-foreground bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900">
       {/* 背景装饰 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-500/25 dark:bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 right-0 w-96 h-96 bg-purple-500/20 dark:bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-cyan-500/20 dark:bg-cyan-500/10 rounded-full blur-3xl" />
       </div>
 
       <div className="relative flex h-screen">
@@ -103,5 +105,6 @@ export default function App() {
       </div>
     </div>
     </LayoutShellProvider>
+    </ThemeProvider>
   );
 }

@@ -251,3 +251,22 @@ MoneyFlow.tsx
 
 ---
 
+## 主题（浅色 / 深色）
+
+### 入口与数据流
+
+- **持久化**：`SettingConfig.darkTheme`（设置页「暗黑主题」），与后端 `GetConfig` / `UpdateConfig` 一致。
+- **运行时**：[`ThemeProvider`](frontend/src/app/context/ThemeContext.tsx) 在挂载时 `GetConfig()`，对 `document.documentElement` 切换 `dark` 类，与 [`theme.css`](frontend/src/styles/theme.css) 中 `:root` / `.dark` 变量一致。
+- **Wails**：`setIsDark` 时调用 `WindowSetBackgroundColour`、`WindowSetDarkTheme` / `WindowSetLightTheme`（与 `main.go` 启动时窗口色一致）。[`main.tsx`](frontend/src/main.tsx) 首帧默认加上 `dark` 类，避免浅色闪屏直至配置返回。
+
+### 使用方式
+
+- 业务组件：`useTheme()` 得到 `isDark`、`setIsDark`（图表等需非 Tailwind 逻辑时使用）。
+- K 线 / 资金图：`KLineChart`、`MoneyTrend` 的 `darkTheme` 由行情页传入 `isDark`（如 `IndustryRankPanel`、`StockMoneyFlowPanel`、`StockNoticePanel`、`LongTigerRank`）。
+
+### 设计原因
+
+单一配置源，避免与 `next-themes` 双轨；壳层与表单使用 `bg-background`、`border-border`、`text-foreground` 等语义类，浅色为浅灰渐变背景，深色保留原蓝黑渐变（`dark:` 分支）。
+
+---
+

@@ -151,7 +151,7 @@ export function MarketGauge() {
   const neutralPct = Math.max(0, 100 - bullishPct - bearishPct);
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-3 sm:p-4 shadow-2xl hover:border-cyan-500/30 transition-all">
+    <div className="bg-card dark:bg-slate-900 rounded-2xl border border-border p-3 sm:p-4 shadow-md hover:border-cyan-500/30 transition-all">
       {/* Main Indexes Ticker */}
       {/* {mainIndexes.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">

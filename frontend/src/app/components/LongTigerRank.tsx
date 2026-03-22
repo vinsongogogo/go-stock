@@ -9,6 +9,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { DayPicker } from 'react-day-picker';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { useTheme } from '../context/ThemeContext';
 
 // 格式化日期为 YYYY-MM-DD
 function formatDate(date: Date): string {
@@ -43,6 +44,7 @@ function formatAmount(amount: number): string {
 }
 
 export function LongTigerRank() {
+  const { isDark } = useTheme();
   const today = useMemo(() => formatDate(new Date()), []);
   const [date, setDate] = useState<string>(today);
   const [data, setData] = useState<LongTigerRankData[]>([]);
@@ -157,23 +159,23 @@ export function LongTigerRank() {
   return (
     <div className="space-y-6">
       {/* 标题卡片 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/50">
-            <TrendingUp className="w-6 h-6 text-white" />
+            <TrendingUp className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-xl text-white font-light">龙虎榜</h2>
-            <p className="text-xs text-gray-400">Long Tiger Rank · Market Movers</p>
+            <h2 className="text-xl text-foreground font-light">龙虎榜</h2>
+            <p className="text-xs text-muted-foreground">Long Tiger Rank · Market Movers</p>
           </div>
         </div>
       </div>
 
       {/* 筛选区域 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl mt-2.5">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl mt-2.5">
         <div className="flex items-center gap-2 mb-3">
           <Filter className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-sm text-gray-300">筛选条件</h3>
+          <h3 className="text-sm text-muted-foreground">筛选条件</h3>
         </div>
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2">
@@ -182,7 +184,7 @@ export function LongTigerRank() {
             <Popover.Root open={calendarOpen} onOpenChange={setCalendarOpen}>
               <Popover.Trigger asChild>
                 <button
-                  className="flex items-center justify-between gap-2 px-3 py-2 min-w-[160px] bg-slate-800/80 border border-cyan-500/50 rounded-lg text-sm text-white hover:border-cyan-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all backdrop-blur-sm shadow-lg shadow-cyan-500/10"
+                  className="flex items-center justify-between gap-2 px-3 py-2 min-w-[160px] bg-input-background border border-cyan-500/50 rounded-lg text-sm text-foreground hover:border-cyan-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all shadow-md"
                 >
                   <span>{date || '选择日期'}</span>
                   <CalendarIcon className="w-4 h-4 text-cyan-400" />
@@ -190,7 +192,7 @@ export function LongTigerRank() {
               </Popover.Trigger>
               <Popover.Portal>
                 <Popover.Content
-                  className="z-50 bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl shadow-2xl shadow-cyan-500/20 p-4"
+                  className="z-50 bg-popover border border-cyan-500/30 rounded-xl shadow-lg p-4"
                   sideOffset={8}
                   align="start"
                 >
@@ -204,34 +206,34 @@ export function LongTigerRank() {
                       setCalendarOpen(false);
                     }}
                     locale={zhCN}
-                    className="text-white"
+                    className="text-foreground"
                     classNames={{
                       months: "flex flex-col",
                       month: "space-y-4",
                       caption: "flex justify-center pt-1 relative items-center mb-4",
-                      caption_label: "text-base font-medium text-white",
+                      caption_label: "text-base font-medium text-foreground",
                       nav: "flex items-center",
-                      nav_button: "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100 flex items-center justify-center rounded-md hover:bg-slate-700/50 transition-colors",
+                      nav_button: "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100 flex items-center justify-center rounded-md hover:bg-accent transition-colors",
                       nav_button_previous: "absolute left-1",
                       nav_button_next: "absolute right-1",
                       table: "w-full border-collapse",
                       head_row: "flex",
-                      head_cell: "text-slate-400 rounded-md w-9 font-normal text-sm",
+                      head_cell: "text-muted-foreground rounded-md w-9 font-normal text-sm",
                       row: "flex w-full mt-2",
                       cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 h-9 w-9",
-                      day: "h-9 w-9 p-0 font-normal text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors flex items-center justify-center cursor-pointer",
-                      day_selected: "bg-cyan-500 text-white hover:bg-cyan-400 rounded-lg shadow-lg shadow-cyan-500/50",
-                      day_today: "text-cyan-400 font-semibold",
-                      day_outside: "text-slate-600 opacity-50",
-                      day_disabled: "text-slate-600 opacity-30",
+                      day: "h-9 w-9 p-0 font-normal text-foreground hover:bg-accent rounded-lg transition-colors flex items-center justify-center cursor-pointer",
+                      day_selected: "bg-cyan-500 text-white hover:bg-cyan-400 rounded-lg shadow-md",
+                      day_today: "text-cyan-600 dark:text-cyan-400 font-semibold",
+                      day_outside: "text-muted-foreground opacity-50",
+                      day_disabled: "text-muted-foreground opacity-30",
                       day_hidden: "invisible",
                     }}
                     components={{
-                      IconLeft: () => <ChevronLeft className="h-4 w-4 text-slate-300" />,
-                      IconRight: () => <ChevronRight className="h-4 w-4 text-slate-300" />,
+                      IconLeft: () => <ChevronLeft className="h-4 w-4 text-muted-foreground" />,
+                      IconRight: () => <ChevronRight className="h-4 w-4 text-muted-foreground" />,
                     }}
                   />
-                  <div className="flex gap-3 mt-4 pt-4 border-t border-slate-700/50">
+                  <div className="flex gap-3 mt-4 pt-4 border-t border-border">
                     <button
                       onClick={() => {
                         handleDateChange(formatDate(new Date()));
@@ -246,7 +248,7 @@ export function LongTigerRank() {
                         handleDateChange('');
                         setCalendarOpen(false);
                       }}
-                      className="flex-1 py-2 px-4 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-cyan-500/30 rounded-lg text-sm font-medium transition-colors"
+                      className="flex-1 py-2 px-4 bg-muted hover:bg-accent text-foreground border border-border rounded-lg text-sm font-medium transition-colors"
                     >
                       清除
                     </button>
@@ -260,7 +262,7 @@ export function LongTigerRank() {
             <label className="text-xs text-gray-400">上榜原因:</label>
             <SelectPrimitive.Root value={selectedExplanation} onValueChange={handleFilterChange}>
               <SelectPrimitive.Trigger
-                className="flex items-center justify-between gap-2 px-3 py-2 min-w-[200px] bg-slate-800/80 border border-cyan-500/50 rounded-lg text-sm text-white hover:border-cyan-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all backdrop-blur-sm shadow-lg shadow-cyan-500/10 data-[state=open]:border-cyan-400"
+                className="flex items-center justify-between gap-2 px-3 py-2 min-w-[200px] bg-input-background border border-cyan-500/50 rounded-lg text-sm text-foreground hover:border-cyan-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-all shadow-md data-[state=open]:border-cyan-400"
               >
                 <SelectPrimitive.Value placeholder="全部" />
                 <SelectPrimitive.Icon>
@@ -269,14 +271,14 @@ export function LongTigerRank() {
               </SelectPrimitive.Trigger>
               <SelectPrimitive.Portal>
                 <SelectPrimitive.Content
-                  className="z-50 overflow-hidden bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl shadow-2xl shadow-cyan-500/20"
+                  className="z-50 overflow-hidden bg-popover border border-cyan-500/30 rounded-xl shadow-lg"
                   position="popper"
                   sideOffset={8}
                 >
                   <SelectPrimitive.Viewport className="p-2">
                     <SelectPrimitive.Item
                       value="__all__"
-                      className="relative flex items-center px-3 py-2 text-sm text-white rounded-lg cursor-pointer outline-none hover:bg-slate-700/50 focus:bg-slate-700/50 data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-400 transition-colors"
+                      className="relative flex items-center px-3 py-2 text-sm text-foreground rounded-lg cursor-pointer outline-none hover:bg-accent focus:bg-accent data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-600 dark:data-[state=checked]:text-cyan-400 transition-colors"
                     >
                       <SelectPrimitive.ItemText>全部</SelectPrimitive.ItemText>
                       <SelectPrimitive.ItemIndicator className="absolute right-2">
@@ -287,7 +289,7 @@ export function LongTigerRank() {
                       <SelectPrimitive.Item
                         key={exp}
                         value={exp}
-                        className="relative flex items-center px-3 py-2 text-sm text-white rounded-lg cursor-pointer outline-none hover:bg-slate-700/50 focus:bg-slate-700/50 data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-400 transition-colors"
+                        className="relative flex items-center px-3 py-2 text-sm text-foreground rounded-lg cursor-pointer outline-none hover:bg-accent focus:bg-accent data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-600 dark:data-[state=checked]:text-cyan-400 transition-colors"
                       >
                         <SelectPrimitive.ItemText>{exp}</SelectPrimitive.ItemText>
                         <SelectPrimitive.ItemIndicator className="absolute right-2">
@@ -309,7 +311,7 @@ export function LongTigerRank() {
 
       {/* 加载状态 */}
       {loading && (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl">
+        <div className="bg-card rounded-xl border border-border shadow-2xl">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
             <span className="ml-2 text-cyan-400">正在获取龙虎榜数据...</span>
@@ -319,7 +321,7 @@ export function LongTigerRank() {
 
       {/* 数据表格 */}
       {!loading && filteredData.length > 0 && (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -400,7 +402,7 @@ export function LongTigerRank() {
 
       {/* 无数据提示 */}
       {!loading && filteredData.length === 0 && (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl">
+        <div className="bg-card rounded-xl border border-border shadow-2xl">
           <div className="flex items-center justify-center py-12 text-gray-500">
             暂无数据，请切换日期
           </div>
@@ -410,7 +412,7 @@ export function LongTigerRank() {
       {/* 悬停弹窗 - K 线图 */}
       {hoveredStock && hoveredStock.type === 'kline' && (
         <div 
-          className="fixed z-50 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-4"
+          className="fixed z-50 bg-popover border border-border rounded-xl shadow-2xl p-4"
           style={{
             left: Math.min(popoverPosition.x + 20, window.innerWidth - 820),
             top: Math.min(popoverPosition.y, window.innerHeight - 520),
@@ -425,7 +427,7 @@ export function LongTigerRank() {
             stockName={hoveredStock.name}
             kDays={20}
             chartHeight={460}
-            darkTheme={true}
+            darkTheme={isDark}
           />
         </div>
       )}
@@ -433,7 +435,7 @@ export function LongTigerRank() {
       {/* 悬停弹窗 - 资金流向 */}
       {hoveredStock && hoveredStock.type === 'money' && (
         <div 
-          className="fixed z-50 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-4"
+          className="fixed z-50 bg-popover border border-border rounded-xl shadow-2xl p-4"
           style={{
             left: Math.min(popoverPosition.x + 20, window.innerWidth - 820),
             top: Math.min(popoverPosition.y, window.innerHeight - 520),
@@ -448,7 +450,7 @@ export function LongTigerRank() {
             name={hoveredStock.name}
             days={360}
             chartHeight={460}
-            darkTheme={true}
+            darkTheme={isDark}
           />
         </div>
       )}

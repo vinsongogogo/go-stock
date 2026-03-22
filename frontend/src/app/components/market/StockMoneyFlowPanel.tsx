@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { GetMoneyRankSina } from '../../../../wailsjs/go/main/App';
 import { KLineChart } from '../KLineChart';
 import { SubMenu } from '../SubMenu';
+import { useTheme } from '../../context/ThemeContext';
 
 type SortKey =
   | 'netamount'
@@ -33,6 +34,7 @@ function num(v: unknown): number {
 }
 
 export function StockMoneyFlowPanel() {
+  const { isDark } = useTheme();
   const [sort, setSort] = useState<SortKey>('netamount');
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(false);
@@ -100,7 +102,7 @@ export function StockMoneyFlowPanel() {
         }}
       />
 
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
         {loading && (
           <div className="flex items-center justify-center py-8 text-cyan-400 text-xs gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -111,7 +113,7 @@ export function StockMoneyFlowPanel() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1200px]">
               <thead>
-                <tr className="border-b border-white/10">
+                <tr className="border-b border-border">
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">代码</th>
                   <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">名称</th>
                   <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-400">最新价</th>
@@ -150,7 +152,7 @@ export function StockMoneyFlowPanel() {
                   const up = cr >= 0;
                   const turnover = num(item.turnover);
                   return (
-                    <tr key={String(item.symbol)} className="border-b border-white/5 hover:bg-white/5">
+                    <tr key={String(item.symbol)} className="border-b border-border/60 hover:bg-accent/40 dark:hover:bg-white/5">
                       <td className="px-3 py-2 text-xs font-mono text-cyan-400">{String(item.symbol)}</td>
                       <td className="px-3 py-2">
                         <button
@@ -233,7 +235,7 @@ export function StockMoneyFlowPanel() {
 
       {hover && (
         <div
-          className="fixed z-50 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-3"
+          className="fixed z-50 bg-popover border border-border rounded-xl shadow-2xl p-3"
           style={{
             left: Math.min(pos.x + 16, window.innerWidth - 820),
             top: Math.min(pos.y, window.innerHeight - 520),
@@ -243,7 +245,7 @@ export function StockMoneyFlowPanel() {
           onMouseEnter={() => clearHide()}
           onMouseLeave={() => setHover(null)}
         >
-          <KLineChart code={hover.code} stockName={hover.name} kDays={20} chartHeight={460} darkTheme />
+          <KLineChart code={hover.code} stockName={hover.name} kDays={20} chartHeight={460} darkTheme={isDark} />
         </div>
       )}
     </div>

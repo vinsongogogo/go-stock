@@ -30,9 +30,9 @@ function renderMarkdown(text: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-cyan-400 mt-4 mb-2">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold text-cyan-300 mt-6 mb-3 pb-2 border-b border-white/10">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-white mt-6 mb-4">$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold text-cyan-600 dark:text-cyan-300 mt-6 mb-3 pb-2 border-b border-border">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-foreground mt-6 mb-4">$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground font-semibold">$1</strong>')
     .replace(/\*(.+?)\*/g, '<em class="text-gray-300">$1</em>')
     .replace(/```[\s\S]*?```/g, (match) => {
       const code = match.slice(3, -3).trim();
@@ -47,7 +47,7 @@ function renderMarkdown(text: string): string {
         return '';
       }
       const tds = cells.map(cell => 
-        `<td class="px-3 py-2 border border-white/10 text-gray-300">${cell.trim()}</td>`
+        `<td class="px-3 py-2 border border-border text-muted-foreground">${cell.trim()}</td>`
       ).join('');
       return `<tr>${tds}</tr>`;
     })
@@ -266,7 +266,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
     const stars = getStarRating(data.overallScore);
 
     return (
-      <div className="bg-slate-800/40 rounded-lg p-4 mb-4 border border-white/10">
+      <div className="bg-muted/50 dark:bg-slate-800/40 rounded-lg p-4 mb-4 border border-border">
         {/* 头部：推荐等级和综合评分 */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -277,7 +277,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
               {Array.from({ length: 5 }).map((_, i) => (
                 <span key={i} className={i < stars ? 'text-yellow-400' : 'text-gray-600'}>★</span>
               ))}
-              <span className="ml-2 text-lg font-bold text-white">{data.overallScore}</span>
+              <span className="ml-2 text-lg font-bold text-foreground">{data.overallScore}</span>
             </div>
           </div>
           <span className={`text-sm font-medium ${riskStyle}`}>{data.riskLevel}</span>
@@ -336,7 +336,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
     const { structured, markdown } = parseStructuredData(item.content || '');
 
     return (
-      <div className="mt-4 pt-4 border-t border-white/10">
+      <div className="mt-4 pt-4 border-t border-border">
         {/* 结构化数据卡片 */}
         {structured && renderStructuredCard(structured)}
 
@@ -353,14 +353,14 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
     <div className="space-y-6">
       {/* 头部 — embedded 模式下隐藏 */}
       {!embedded && (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+        <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <History className="w-6 h-6 text-white" />
+                <History className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="text-xl text-white font-light">分析历史记录</h2>
+                <h2 className="text-xl text-foreground font-light">分析历史记录</h2>
                 <p className="text-xs text-gray-400">Analysis History · Review Past Insights</p>
               </div>
             </div>
@@ -380,7 +380,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
       )}
 
       {/* 搜索筛选区域 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
         <div className="flex flex-wrap gap-3">
           {/* 搜索框 */}
           <div className="flex-1 min-w-[200px] relative">
@@ -391,7 +391,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
               onChange={(e) => setSearchText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="搜索股票代码或名称"
-              className="w-full bg-slate-800/60 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+              className="w-full bg-input-background border border-input rounded-lg pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50"
             />
           </div>
 
@@ -402,7 +402,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="bg-slate-800/60 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500/50"
+              className="bg-input-background border border-input rounded-lg pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-cyan-500/50"
             />
           </div>
 
@@ -413,7 +413,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="bg-slate-800/60 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500/50"
+              className="bg-input-background border border-input rounded-lg pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-cyan-500/50"
             />
           </div>
 
@@ -428,14 +428,14 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
           {/* 重置按钮 */}
           <button
             onClick={handleReset}
-            className="px-4 py-2 bg-slate-700/60 hover:bg-slate-600/60 border border-white/10 rounded-lg text-gray-300 text-sm transition-all"
+            className="px-4 py-2 bg-muted/80 dark:bg-slate-700/60 hover:bg-accent border border-border rounded-lg text-muted-foreground text-sm transition-all"
           >
             重置
           </button>
         </div>
 
         {/* 批量操作 */}
-        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/10">
+        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border">
           <button
             onClick={handleSelectAll}
             className="flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-400 transition-colors"
@@ -461,7 +461,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
       </div>
 
       {/* 列表 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -501,7 +501,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
                       onClick={() => setExpandedId(expandedId === item.ID ? null : item.ID)}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-white font-medium">{item.stockName || '--'}</span>
+                        <span className="text-foreground font-medium">{item.stockName || '--'}</span>
                         <span className="text-gray-400 text-sm font-mono">{item.stockCode || '--'}</span>
                         {item.modelName && (
                           <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded">
@@ -542,12 +542,12 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
 
       {/* 分页 */}
       {pageData && pageData.totalPages > 1 && (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-2xl">
+        <div className="bg-card rounded-xl border border-border p-4 shadow-2xl">
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-slate-800/60 hover:bg-slate-700/60 border border-white/10 rounded-lg text-sm text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2 bg-input-background hover:bg-accent border border-input rounded-lg text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               上一页
             </button>
@@ -557,7 +557,7 @@ export default function AnalysisHistory({ embedded = false }: AnalysisHistoryPro
             <button
               onClick={() => setCurrentPage(prev => Math.min(pageData.totalPages, prev + 1))}
               disabled={currentPage === pageData.totalPages}
-              className="px-4 py-2 bg-slate-800/60 hover:bg-slate-700/60 border border-white/10 rounded-lg text-sm text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2 bg-input-background hover:bg-accent border border-input rounded-lg text-sm text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               下一页
             </button>

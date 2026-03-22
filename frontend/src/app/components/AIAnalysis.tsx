@@ -393,9 +393,9 @@ function renderMarkdown(text: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-cyan-400 mt-4 mb-2">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold text-cyan-300 mt-6 mb-3 pb-2 border-b border-white/10">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-white mt-6 mb-4">$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold text-cyan-600 dark:text-cyan-300 mt-6 mb-3 pb-2 border-b border-border">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-foreground mt-6 mb-4">$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground font-semibold">$1</strong>')
     .replace(/\*(.+?)\*/g, '<em class="text-gray-300">$1</em>')
     .replace(/```[\s\S]*?```/g, (match) => {
       const code = match.slice(3, -3).trim();
@@ -410,7 +410,7 @@ function renderMarkdown(text: string): string {
         return '';
       }
       const tds = cells.map(cell => 
-        `<td class="px-3 py-2 border border-white/10 text-gray-300">${cell.trim()}</td>`
+        `<td class="px-3 py-2 border border-border text-muted-foreground">${cell.trim()}</td>`
       ).join('');
       return `<tr>${tds}</tr>`;
     })
@@ -1075,7 +1075,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
             {/* 左侧：股票信息与核心结论 */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-foreground">
                   {dashboardData.stock_name || stock.stockName}
                 </h3>
                 <span className="text-xs text-gray-500 font-mono">{stock.stockCode}</span>
@@ -1151,7 +1151,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
                   {dataPerspective.price_position && (
                     <div className="bg-slate-800/40 rounded p-2">
                       <span className="text-xs text-gray-500">价格</span>
-                      <p className="text-xs font-mono text-white">¥{dataPerspective.price_position.current_price}</p>
+                      <p className="text-xs font-mono text-foreground">¥{dataPerspective.price_position.current_price}</p>
                       <span className={`text-xs font-mono ${
                         dataPerspective.price_position.bias_status === '安全' ? 'text-green-400' :
                         dataPerspective.price_position.bias_status === '警戒' ? 'text-yellow-400' : 'text-red-400'
@@ -1163,7 +1163,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
                   {dataPerspective.volume_analysis && (
                     <div className="bg-slate-800/40 rounded p-2">
                       <span className="text-xs text-gray-500">量能</span>
-                      <p className="text-xs font-medium text-white">{dataPerspective.volume_analysis.volume_status || '—'}</p>
+                      <p className="text-xs font-medium text-foreground">{dataPerspective.volume_analysis.volume_status || '—'}</p>
                       <span className="text-xs text-gray-500">
                         量比{dataPerspective.volume_analysis.volume_ratio ?? '—'} 换手{dataPerspective.volume_analysis.turnover_rate !== undefined ? `${dataPerspective.volume_analysis.turnover_rate}%` : '—'}
                       </span>
@@ -1280,7 +1280,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           <div className="flex items-center gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold text-white">{stock.stockName}</h3>
+                <h3 className="text-xl font-bold text-foreground">{stock.stockName}</h3>
                 <span className="text-sm text-gray-400 font-mono">{stock.stockCode}</span>
                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${recStyle.bg} ${recStyle.text} border ${recStyle.border}`}>
                   {structuredData.recommendation}
@@ -1300,28 +1300,28 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
 
         {/* 四维评分卡片 */}
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-slate-800/40 rounded-lg p-3 border border-white/5">
+          <div className="bg-muted/50 dark:bg-slate-800/40 rounded-lg p-3 border border-border/60">
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="w-4 h-4 text-cyan-400" />
               <span className="text-xs text-gray-400">技术面</span>
             </div>
             <p className="text-xl font-bold text-cyan-400">{structuredData.technicalScore}分</p>
           </div>
-          <div className="bg-slate-800/40 rounded-lg p-3 border border-white/5">
+          <div className="bg-muted/50 dark:bg-slate-800/40 rounded-lg p-3 border border-border/60">
             <div className="flex items-center gap-2 mb-1">
               <BarChart3 className="w-4 h-4 text-blue-400" />
               <span className="text-xs text-gray-400">基本面</span>
             </div>
             <p className="text-xl font-bold text-blue-400">{structuredData.fundamentalScore}分</p>
           </div>
-          <div className="bg-slate-800/40 rounded-lg p-3 border border-white/5">
+          <div className="bg-muted/50 dark:bg-slate-800/40 rounded-lg p-3 border border-border/60">
             <div className="flex items-center gap-2 mb-1">
               <DollarSign className="w-4 h-4 text-orange-400" />
               <span className="text-xs text-gray-400">资金面</span>
             </div>
             <p className="text-xl font-bold text-orange-400">{structuredData.capitalScore}分</p>
           </div>
-          <div className="bg-slate-800/40 rounded-lg p-3 border border-white/5">
+          <div className="bg-muted/50 dark:bg-slate-800/40 rounded-lg p-3 border border-border/60">
             <div className="flex items-center gap-2 mb-1">
               <Shield className="w-4 h-4 text-green-400" />
               <span className="text-xs text-gray-400">风险等级</span>
@@ -1331,7 +1331,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         </div>
 
         {/* AI智能洞察 */}
-        <div className="bg-slate-800/30 rounded-lg p-4 border border-white/5">
+        <div className="bg-muted/40 dark:bg-slate-800/30 rounded-lg p-4 border border-border/60">
           <div className="flex items-center gap-2 mb-2">
             <Brain className="w-4 h-4 text-purple-400" />
             <span className="text-sm font-medium text-purple-400">AI智能洞察</span>
@@ -1382,10 +1382,10 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         {sections.map((section, index) => (
           <div 
             key={index} 
-            className="bg-slate-800/40 backdrop-blur-xl rounded-lg border border-white/10 p-4"
+            className="bg-muted dark:bg-slate-800 rounded-lg border border-border p-4"
           >
             {section.title && (
-              <h3 className="text-lg font-semibold text-cyan-300 mb-3 pb-2 border-b border-white/10 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-300 mb-3 pb-2 border-b border-border flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-purple-400" />
                 {section.title}
               </h3>
@@ -1409,14 +1409,14 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
     return (
       <div 
         key={stock.stockCode}
-        className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl"
+        className="bg-card rounded-xl border border-border p-5 shadow-2xl"
       >
         {/* 分析中状态 */}
         {stock.isAnalyzing && (
           <div className="mb-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold text-white">{stock.stockName}</h3>
+                <h3 className="text-xl font-bold text-foreground">{stock.stockName}</h3>
                 <span className="text-sm text-gray-400 font-mono">{stock.stockCode}</span>
               </div>
               <div className="flex items-center gap-2">
@@ -1437,7 +1437,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         {stock.error && !stock.isAnalyzing && (
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-white">{stock.stockName}</h3>
+              <h3 className="text-xl font-bold text-foreground">{stock.stockName}</h3>
               <span className="text-sm text-gray-400 font-mono">{stock.stockCode}</span>
             </div>
             <div className="flex items-center gap-2 text-red-400 text-sm">
@@ -1468,7 +1468,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold text-white">{stock.stockName}</h3>
+                <h3 className="text-xl font-bold text-foreground">{stock.stockName}</h3>
                 <span className="text-sm text-gray-400 font-mono">{stock.stockCode}</span>
               </div>
               {stock.updatedAt && (
@@ -1483,7 +1483,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         {!stock.isAnalyzing && !stock.advisorReport && !stock.dashboardData && !stock.content && !stock.error && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-white">{stock.stockName}</h3>
+              <h3 className="text-xl font-bold text-foreground">{stock.stockName}</h3>
               <span className="text-sm text-gray-400 font-mono">{stock.stockCode}</span>
             </div>
             <span className="text-xs text-gray-500">暂无分析结果</span>
@@ -1492,7 +1492,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
 
         {/* 展开详情按钮和重新分析按钮 */}
         {!stock.isAnalyzing && (stock.content || stock.structuredData || stock.dashboardData || stock.advisorReport) && (
-          <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-white/5">
+          <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-border/60">
             <button
               onClick={() => toggleDetail(stock.stockCode)}
               className="flex items-center gap-1.5 px-4 py-2 text-sm text-gray-400 hover:text-cyan-400 transition-colors"
@@ -1536,7 +1536,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
 
         {/* 展开的详情内容 */}
         {stock.showDetail && stock.markdownContent && (
-          <div className="mt-4 pt-4 border-t border-white/10">
+          <div className="mt-4 pt-4 border-t border-border">
             {renderMarkdownSections(stock.markdownContent)}
           </div>
         )}
@@ -1596,7 +1596,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
     const isLogVisible = showLogStockCode === stock.stockCode;
 
     return (
-      <div className="pt-3 mt-3 border-t border-white/5">
+      <div className="pt-3 mt-3 border-t border-border/60">
         <button
           onClick={() => setShowLogStockCode(isLogVisible ? null : stock.stockCode)}
           className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-400 transition-colors"
@@ -1606,7 +1606,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           {isLogVisible ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
         {isLogVisible && (
-          <div className="mt-2 bg-slate-950/60 rounded-lg border border-white/5 p-4 max-h-[500px] overflow-y-auto">
+          <div className="mt-2 bg-muted/50 dark:bg-slate-950/60 rounded-lg border border-border/60 p-4 max-h-[500px] overflow-y-auto">
             <pre className="text-xs text-gray-500 font-mono whitespace-pre-wrap break-words leading-relaxed">
               {stock.content}
             </pre>
@@ -1686,7 +1686,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4">
             <Brain className="w-10 h-10 text-cyan-400" />
           </div>
-          <h3 className="text-lg text-white mb-2">请在左侧选择股票</h3>
+          <h3 className="text-lg text-foreground mb-2">请在左侧选择股票</h3>
           <p className="text-sm text-gray-400 max-w-md">
             选择一只股票查看 AI 分析详情
           </p>
@@ -1699,7 +1699,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
       return (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
+            <h3 className="text-xl font-bold text-foreground">{selectedStock.stockName}</h3>
             <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -1714,7 +1714,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           </div>
           {/* 流式输出内容 */}
           {selectedStock.content && (
-            <div className="mt-4 bg-slate-950/60 rounded-lg border border-white/5 p-4 max-h-[500px] overflow-y-auto">
+            <div className="mt-4 bg-muted/50 dark:bg-slate-950/60 rounded-lg border border-border/60 p-4 max-h-[500px] overflow-y-auto">
               <pre className="text-xs text-gray-400 font-mono whitespace-pre-wrap break-words leading-relaxed">
                 {selectedStock.content}
               </pre>
@@ -1729,7 +1729,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
       return (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
+            <h3 className="text-xl font-bold text-foreground">{selectedStock.stockName}</h3>
             <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
           </div>
           <div className="flex items-center gap-2 text-red-400">
@@ -1836,7 +1836,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         <div className="space-y-4">
           {renderHistoryPicker(selectedStock)}
           <div className="flex items-center gap-3 mb-4">
-            <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
+            <h3 className="text-xl font-bold text-foreground">{selectedStock.stockName}</h3>
             <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
             {display.updatedAt && (
               <span className="text-xs text-gray-500">{display.updatedAt} 更新</span>
@@ -1861,7 +1861,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <h3 className="text-xl font-bold text-white">{selectedStock.stockName}</h3>
+          <h3 className="text-xl font-bold text-foreground">{selectedStock.stockName}</h3>
           <span className="text-sm text-gray-400 font-mono">{selectedStock.stockCode}</span>
         </div>
         <p className="text-sm text-gray-500">暂无分析结果</p>
@@ -1899,7 +1899,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className={`text-sm font-medium truncate ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+            <span className={`text-sm font-medium truncate ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
               {stock.stockName}
             </span>
             {stock.isAnalyzing && (
@@ -1934,14 +1934,14 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
   return (
     <div className="flex flex-col h-full gap-3">
       {/* 工具栏 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-3 shadow-2xl flex-shrink-0">
+      <div className="bg-card rounded-xl border border-border p-3 shadow-2xl flex-shrink-0">
         <div className="flex items-center gap-3 flex-wrap">
           {/* 标题 */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <Brain className="w-4 h-4 text-white" />
+              <Brain className="w-4 h-4 text-foreground" />
             </div>
-            <span className="text-sm font-medium text-white">AI分析</span>
+            <span className="text-sm font-medium text-foreground">AI分析</span>
           </div>
 
           <div className="h-6 w-px bg-white/10"></div>
@@ -1955,7 +1955,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
                   value={selectedAiConfigId}
                   onChange={(e) => setSelectedAiConfigId(Number(e.target.value))}
                   disabled={hasAnyAnalyzing}
-                  className="appearance-none bg-slate-800/60 border border-white/10 rounded-lg px-3 py-1.5 pr-8 text-sm text-gray-300 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
+                  className="appearance-none bg-input-background border border-input rounded-lg px-3 py-1.5 pr-8 text-sm text-foreground focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
                 >
                   {aiConfigs.map((config) => (
                     <option key={config.ID} value={config.ID}>
@@ -1983,7 +1983,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
                 onKeyDown={(e) => e.key === 'Enter' && handleInputAnalysis()}
                 placeholder="输入股票代码，如 600519"
                 disabled={hasAnyAnalyzing}
-                className="w-full bg-slate-800/60 border border-white/10 rounded-lg pl-10 pr-4 py-1.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
+                className="w-full bg-input-background border border-input rounded-lg pl-10 pr-4 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 disabled:opacity-50"
               />
             </div>
             <button
@@ -2046,9 +2046,9 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
       {/* 主区域：左右分栏 */}
       <div className="flex gap-3 flex-1 min-h-0 mt-2.5">
         {/* ===== 左栏：股票列表 ===== */}
-        <div className="w-72 flex-shrink-0 bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+        <div className="w-72 flex-shrink-0 bg-card rounded-xl border border-border shadow-2xl flex flex-col overflow-hidden">
           {/* 筛选输入 */}
-          <div className="p-3 border-b border-white/5">
+          <div className="p-3 border-b border-border/60">
             <div className="relative">
               <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
               <input
@@ -2056,7 +2056,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
                 placeholder="筛选股票..."
-                className="w-full bg-slate-800/60 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                className="w-full bg-input-background border border-input rounded-lg pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50"
               />
             </div>
           </div>
@@ -2113,19 +2113,19 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           </div>
 
           {/* 底部统计 */}
-          <div className="px-3 py-2 border-t border-white/5 text-xs text-gray-600">
+          <div className="px-3 py-2 border-t border-border/60 text-xs text-muted-foreground">
             共 {stockAnalysisList.length} 只
           </div>
         </div>
 
         {/* ===== 右栏：详情区 ===== */}
-        <div className="flex-1 bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-y-auto p-5">
+        <div className="flex-1 bg-card rounded-xl border border-border shadow-2xl overflow-y-auto p-5">
           {renderDetail()}
         </div>
       </div>
 
       {/* 免责声明 */}
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-3 shadow-2xl flex-shrink-0">
+      <div className="bg-card rounded-xl border border-border p-3 shadow-2xl flex-shrink-0">
         <div className="text-xs text-gray-500 flex gap-4">
           <span>AI 分析仅供参考，不构成投资建议</span>
           <span>投资有风险，入市需谨慎</span>

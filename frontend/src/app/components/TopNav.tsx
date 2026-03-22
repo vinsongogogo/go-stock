@@ -10,7 +10,7 @@ export function TopNav({ activeTab, setActiveTab }: TopNavProps) {
   ];
 
   return (
-    <div className="bg-slate-900/30 backdrop-blur-xl border-b border-white/10 hidden lg:block">
+    <div className="bg-muted dark:bg-slate-900 border-b border-border hidden lg:block">
       <div className="flex items-center overflow-x-auto scrollbar-hide px-2">
         {tabs.map((tab) => (
           <button
@@ -18,8 +18,8 @@ export function TopNav({ activeTab, setActiveTab }: TopNavProps) {
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-3 text-sm whitespace-nowrap transition-all relative ${
               activeTab === tab
-                ? 'text-cyan-400'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-cyan-700 dark:text-cyan-400'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {tab}

@@ -76,27 +76,27 @@ export function MarketTicker() {
 
   if (mainIndexes.length === 0) {
     return (
-      <div className="bg-slate-900/20 backdrop-blur-sm border-b border-white/5 overflow-hidden hidden sm:block">
+      <div className="bg-muted dark:bg-slate-900 border-b border-border overflow-hidden hidden sm:block">
         <div className="flex items-center justify-center py-2 sm:py-3">
-          <span className="text-xs text-gray-500">{loading ? '加载中...' : '暂无数据'}</span>
+          <span className="text-xs text-muted-foreground">{loading ? '加载中...' : '暂无数据'}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900/20 backdrop-blur-sm border-b border-white/5 overflow-hidden hidden sm:block">
+    <div className="bg-muted dark:bg-slate-900 border-b border-border overflow-hidden hidden sm:block">
       <div className="flex animate-scroll">
         {displayData.map((item, index) => (
           <div
             key={index}
-            className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 whitespace-nowrap border-r border-white/5"
+            className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 whitespace-nowrap border-r border-border"
           >
             {item.img && (
               <img src={item.img} alt={item.name} className="w-4 h-4 rounded" />
             )}
-            <span className="text-xs text-gray-400">{item.name}</span>
-            <span className="text-xs sm:text-sm font-mono">{formatNumber(item.zxj)}</span>
+            <span className="text-xs text-muted-foreground">{item.name}</span>
+            <span className="text-xs sm:text-sm font-mono text-foreground">{formatNumber(item.zxj)}</span>
             <span className={`text-xs flex items-center gap-1 ${
               isPositive(item.zdf) ? 'text-red-400' : 'text-green-400'
             }`}>

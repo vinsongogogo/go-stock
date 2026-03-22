@@ -228,14 +228,14 @@ export function StockFilter() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/50">
-            <Filter className="w-6 h-6 text-white" />
+            <Filter className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-xl text-white font-light">股票筛选</h2>
-            <p className="text-xs text-gray-400">Stock Filter · Advanced Screening</p>
+            <h2 className="text-xl text-foreground font-light">股票筛选</h2>
+            <p className="text-xs text-muted-foreground">Stock Filter · Advanced Screening</p>
           </div>
         </div>
       </div>
@@ -248,11 +248,11 @@ export function StockFilter() {
         />
       </div>
 
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-5 shadow-2xl space-y-6">
+      <div className="bg-card rounded-xl border border-border p-5 shadow-2xl space-y-6">
         <div>
           <div className="flex items-center gap-2 mb-3">
             <BarChart2 className="w-4 h-4 text-cyan-400" />
-            <h3 className="text-sm text-gray-300">技术指标筛选</h3>
+            <h3 className="text-sm text-muted-foreground">技术指标筛选</h3>
           </div>
           <div
             className={cn(
@@ -265,7 +265,7 @@ export function StockFilter() {
             {TECHNICAL_CHECKBOXES.map(({ label, key }) => (
               <label
                 key={key}
-                className="flex items-center gap-2 px-3 py-2 bg-slate-800/40 rounded-lg border border-white/10 hover:border-cyan-500/30 transition-all cursor-pointer group"
+                className="flex items-center gap-2 px-3 py-2 bg-muted/50 dark:bg-slate-800/40 rounded-lg border border-border hover:border-cyan-500/30 transition-all cursor-pointer group"
               >
                 <input
                   type="checkbox"
@@ -273,7 +273,7 @@ export function StockFilter() {
                   onChange={() => toggleTechnical(key)}
                   className="w-3.5 h-3.5 rounded border-gray-600 bg-slate-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 cursor-pointer"
                 />
-                <span className="text-xs text-gray-300 group-hover:text-white transition-colors">
+                <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
                   {label}
                 </span>
               </label>
@@ -283,7 +283,7 @@ export function StockFilter() {
 
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">人气排名连涨:</span>
+            <span className="text-xs text-muted-foreground">人气排名连涨:</span>
             {[3, 5, 7].map((v) => (
               <label key={v} className="flex items-center gap-1 cursor-pointer">
                 <input
@@ -293,12 +293,12 @@ export function StockFilter() {
                   onChange={() => setTechnicalIndicators((p) => ({ ...p, UPP_DAYS: v }))}
                   className="w-3.5 h-3.5 text-cyan-500"
                 />
-                <span className="text-xs text-gray-300">{v}天及以上</span>
+                <span className="text-xs text-muted-foreground">{v}天及以上</span>
               </label>
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">7日关注排名:</span>
+            <span className="text-xs text-muted-foreground">7日关注排名:</span>
             {[10, 50, 100].map((v) => (
               <label key={v} className="flex items-center gap-1 cursor-pointer">
                 <input
@@ -308,12 +308,12 @@ export function StockFilter() {
                   onChange={() => setTechnicalIndicators((p) => ({ ...p, CONCERN_RANK_7DAYS: v }))}
                   className="w-3.5 h-3.5 text-cyan-500"
                 />
-                <span className="text-xs text-gray-300">前{v}名</span>
+                <span className="text-xs text-muted-foreground">前{v}名</span>
               </label>
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">连涨天数:</span>
+            <span className="text-xs text-muted-foreground">连涨天数:</span>
             {[3, 5, 8].map((v) => (
               <label key={v} className="flex items-center gap-1 cursor-pointer">
                 <input
@@ -323,12 +323,12 @@ export function StockFilter() {
                   onChange={() => setTechnicalIndicators((p) => ({ ...p, UPNDAY: v }))}
                   className="w-3.5 h-3.5 text-cyan-500"
                 />
-                <span className="text-xs text-gray-300">{v}天及以上</span>
+                <span className="text-xs text-muted-foreground">{v}天及以上</span>
               </label>
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">连跌天数:</span>
+            <span className="text-xs text-muted-foreground">连跌天数:</span>
             {[3, 5, 8, 10, 14].map((v) => (
               <label key={v} className="flex items-center gap-1 cursor-pointer">
                 <input
@@ -338,7 +338,7 @@ export function StockFilter() {
                   onChange={() => setTechnicalIndicators((p) => ({ ...p, DOWNNDAY: v }))}
                   className="w-3.5 h-3.5 text-cyan-500"
                 />
-                <span className="text-xs text-gray-300">{v}天及以上</span>
+                <span className="text-xs text-muted-foreground">{v}天及以上</span>
               </label>
             ))}
           </div>
@@ -354,14 +354,14 @@ export function StockFilter() {
               onChange={(e) => handleSearchInput(e.target.value)}
               onFocus={() => searchOptions.length > 0 && setSearchOpen(true)}
               onBlur={() => setTimeout(() => setSearchOpen(false), 150)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+              className="w-full pl-10 pr-4 py-2.5 bg-input-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
             />
             {searchOpen && searchOptions.length > 0 && (
-              <ul className="absolute left-0 right-0 top-full mt-1 py-1 bg-slate-800 border border-white/10 rounded-lg shadow-xl z-20 max-h-48 overflow-auto">
+              <ul className="absolute left-0 right-0 top-full mt-1 py-1 bg-popover border border-border rounded-lg shadow-xl z-20 max-h-48 overflow-auto">
                 {searchOptions.map((opt) => (
                   <li
                     key={opt.value}
-                    className="px-4 py-2 text-sm text-gray-300 hover:bg-white/10 cursor-pointer"
+                    className="px-4 py-2 text-sm text-foreground hover:bg-accent cursor-pointer"
                     onMouseDown={() => {
                       setKeyword(opt.value);
                       setSearchOpen(false);
@@ -382,7 +382,7 @@ export function StockFilter() {
           </button>
           <button
             onClick={handleReset}
-            className="px-6 py-2.5 bg-slate-700/50 border border-white/10 rounded-lg text-sm text-gray-300 hover:bg-slate-700 transition-all"
+            className="px-6 py-2.5 bg-muted/70 dark:bg-slate-700/50 border border-border rounded-lg text-sm text-muted-foreground hover:bg-accent transition-all"
           >
             重置
           </button>
@@ -395,11 +395,11 @@ export function StockFilter() {
         </div>
       )}
 
-      <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-border">
                 <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">股票代码</th>
                 <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-400">股票名称</th>
                 <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-400">最新价</th>
@@ -442,13 +442,13 @@ export function StockFilter() {
                   return (
                     <tr
                       key={row.SECUCODE}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      className="border-b border-border/60 hover:bg-accent/50 dark:hover:bg-white/5 transition-colors"
                     >
                       <td className="px-3 py-2.5">
                         <span className="text-xs text-cyan-400 font-mono">{row.SECUCODE}</span>
                       </td>
                       <td className="px-3 py-2.5">
-                        <span className="text-xs text-white">{row.SECURITY_NAME_ABBR}</span>
+                        <span className="text-xs text-foreground">{row.SECURITY_NAME_ABBR}</span>
                       </td>
                       <td className="px-3 py-2.5 text-right">
                         <span className={`text-xs font-medium ${isUp ? 'text-red-400' : 'text-green-400'}`}>
@@ -474,10 +474,10 @@ export function StockFilter() {
                         </span>
                       </td>
                       <td className="px-3 py-2.5 text-right">
-                        <span className="text-xs text-gray-300">{formatVolume(row.VOLUME)}</span>
+                        <span className="text-xs text-muted-foreground">{formatVolume(row.VOLUME)}</span>
                       </td>
                       <td className="px-3 py-2.5 text-right">
-                        <span className="text-xs text-gray-300">{formatAmount(row.DEAL_AMOUNT)}</span>
+                        <span className="text-xs text-muted-foreground">{formatAmount(row.DEAL_AMOUNT)}</span>
                       </td>
                       <td className="px-3 py-2.5 text-right">
                         <span className="text-xs text-blue-400">
@@ -485,15 +485,15 @@ export function StockFilter() {
                         </span>
                       </td>
                       <td className="px-3 py-2.5 text-right">
-                        <span className="text-xs text-gray-300">
+                        <span className="text-xs text-muted-foreground">
                           {isNumeric(row.VOLUME_RATIO) ? row.VOLUME_RATIO : '-'}
                         </span>
                       </td>
                       <td className="px-3 py-2.5">
-                        <span className="text-xs text-gray-300">{row.INDUSTRY ?? '-'}</span>
+                        <span className="text-xs text-muted-foreground">{row.INDUSTRY ?? '-'}</span>
                       </td>
                       <td className="px-3 py-2.5 max-w-[120px] truncate" title={concept}>
-                        <span className="text-xs text-gray-400">{concept}</span>
+                        <span className="text-xs text-muted-foreground">{concept}</span>
                       </td>
                     </tr>
                   );
@@ -512,10 +512,10 @@ export function StockFilter() {
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
         extra={
-          <div className="flex items-center gap-4 pl-4 border-l border-white/10">
-            <span className="text-gray-400">上涨: <span className="text-red-400 font-medium">{upCount}</span></span>
-            <span className="text-gray-400">下跌: <span className="text-green-400 font-medium">{downCount}</span></span>
-            <span className="text-gray-400">平盘: <span className="text-gray-300 font-medium">{flatCount}</span></span>
+          <div className="flex items-center gap-4 pl-4 border-l border-border">
+            <span className="text-muted-foreground">上涨: <span className="text-red-400 font-medium">{upCount}</span></span>
+            <span className="text-muted-foreground">下跌: <span className="text-green-400 font-medium">{downCount}</span></span>
+            <span className="text-muted-foreground">平盘: <span className="text-foreground font-medium">{flatCount}</span></span>
           </div>
         }
       />

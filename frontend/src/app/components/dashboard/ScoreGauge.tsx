@@ -172,7 +172,7 @@ export function ScoreGauge({
         {/* 中心数值 */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className={`font-bold text-white ${fontSize}`}
+            className={`font-bold text-foreground ${fontSize}`}
             style={{ textShadow: `0 0 30px ${colors.glowFilter}` }}
           >
             {displayScore}
