@@ -85,6 +85,8 @@ AIAnalysis.tsx (activeTab='history')
 | 文件 | 说明 |
 |-----|------|
 | `frontend/src/app/components/AIAnalysis.tsx` | AI 分析主组件（含 Tab 切换） |
+| `frontend/src/app/components/ai-analysis/AdvisorMasterPanel.tsx` | 投顾大师结构化报告（`advisor_master_v1`） |
+| `backend/data/dashboard_advisor_prompt.go` | 决策仪表盘默认系统 Prompt（`DefaultDashboardPrompt`） |
 | `frontend/src/app/components/AnalysisHistory.tsx` | 历史记录子组件（支持 embedded 模式） |
 | `frontend/src/app/App.tsx` | 集成路由 |
 | `frontend/src/app/components/Sidebar.tsx` | 菜单入口 |
@@ -102,7 +104,7 @@ AIAnalysis.tsx (activeTab='history')
 
 1. **Tab 整合**：历史记录以 Tab 方式内嵌在 AI 分析页面，而非独立页面，减少导航跳转
 2. **embedded 模式**：AnalysisHistory 组件支持 `embedded` prop，嵌入时隐藏独立头部，保持视觉一致性
-3. **结构化 + Fallback**：AI 输出优先解析 JSON 结构化数据渲染卡片，解析失败降级到 Markdown 分块渲染
+3. **结构化 + Fallback**：流式结果优先解析首段 JSON 代码块：若 `schema_version === 'advisor_master_v1'` 则渲染投顾大师八段面板（`AdvisorMasterPanel`）；否则兼容旧版决策仪表盘 JSON、旧评分 JSON；再不行则 Markdown 分块
 4. **分批加载**：初始化时每批 5 个并发加载历史结果，避免服务器压力
 
 ---
@@ -210,6 +212,42 @@ NewsFeed.tsx
 2. **多维度情绪评分**：综合涨跌停、涨跌家数、北向资金、NLP 情感四个维度，更全面反映市场情绪
 3. **事件聚合**：将重要快讯、行业异动、北向资金异动整合到时间轴，便于用户快速把握市场动态
 4. **分层刷新**：不同模块采用不同刷新频率，平衡数据实时性和系统负载
+
+---
+
+## 资金流向扩展（个股资金 / 行业排名 / 全球指数 / 个股公告）
+
+### 入口与调用
+
+**入口位置：**
+- Sidebar 菜单："资金流向"
+- 主组件：`MoneyFlow.tsx`（一级 Tab：`个股资金流向` / `行业排名` / `全球指数` / `个股公告`）
+
+**调用链：**
+```
+MoneyFlow.tsx
+  -> StockMoneyFlowPanel.tsx   -> App.GetMoneyRankSina(sort)
+  -> IndustryRankPanel.tsx     -> App.GetIndustryRank(sort, 150) | GetIndustryMoneyRankSina(fenlei, 'netamount')
+  -> GlobalIndexesPanel.tsx    -> App.GlobalStockIndexes()
+  -> StockNoticePanel.tsx      -> App.GetStockList(q) | StockNotice(codes) | runtime.BrowserOpenURL(pdf)
+```
+
+**悬停图表：** 与龙虎榜一致，名称/代码悬停使用 `KLineChart`、`MoneyTrend`（固定定位浮层）。
+
+### 涉及文件
+
+| 文件 | 说明 |
+|-----|------|
+| `frontend/src/app/components/MoneyFlow.tsx` | 一级 Tab 容器 |
+| `frontend/src/app/components/market/StockMoneyFlowPanel.tsx` | 个股资金流向表 |
+| `frontend/src/app/components/market/IndustryRankPanel.tsx` | 行业涨幅 + 三类板块资金 |
+| `frontend/src/app/components/market/GlobalIndexesPanel.tsx` | 全球指数分区列表 |
+| `frontend/src/app/components/market/StockNoticePanel.tsx` | 公告列表与搜索 |
+
+### 设计原因
+
+1. **从 Vue 迁移**：逻辑对齐 `frontend_vue` 的 `rankTable.vue`、`industryMoneyRank.vue`、`market.vue` 全球指数区、`StockNoticeList.vue`，UI 使用 React 现有玻璃态与 `text-xs` 表格。
+2. **与现有行情中心分工**：`MarketTicker` 仍用 `GlobalStockIndexes` 做顶部滚动；本页「全球指数」Tab 展示完整分区列表。
 
 ---
 

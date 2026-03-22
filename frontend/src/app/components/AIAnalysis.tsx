@@ -21,6 +21,7 @@ import {
   FileText
 } from 'lucide-react';
 import { ScoreGauge, DashboardCard, StrategyPoints } from './dashboard/index';
+import { AdvisorMasterPanel, type AdvisorMasterReport } from './ai-analysis/AdvisorMasterPanel';
 import {
   GetAiConfigs,
   NewChatStream,
@@ -171,6 +172,7 @@ interface HistoryRecord {
   id: number;
   content: string;
   dashboardData: DashboardData | null;
+  advisorReport: AdvisorMasterReport | null;
   structuredData: StructuredAnalysisData | null;
   markdownContent: string;
   modelName: string;
@@ -185,6 +187,7 @@ interface StockAnalysisState {
   content: string;
   structuredData: StructuredAnalysisData | null;
   dashboardData: DashboardData | null;
+  advisorReport: AdvisorMasterReport | null;
   markdownContent: string;
   historyResult: models.AIResponseResult | null;
   historyRecords: HistoryRecord[];
@@ -255,34 +258,7 @@ const renderStars = (count: number) => {
 };
 
 // =====================
-// JSON 解析函数
-// =====================
-function parseStructuredData(content: string): {
-  structured: StructuredAnalysisData | null;
-  markdown: string;
-} {
-  const jsonBlockRegex = /```json\s*([\s\S]*?)```/;
-  const match = content.match(jsonBlockRegex);
-  
-  if (!match) {
-    return { structured: null, markdown: content };
-  }
-  
-  try {
-    const parsed = JSON.parse(match[1].trim());
-    if (typeof parsed.overallScore !== 'number' || !parsed.recommendation) {
-      return { structured: null, markdown: content };
-    }
-    const jsonBlockEnd = content.indexOf(match[0]) + match[0].length;
-    const markdown = content.substring(jsonBlockEnd).trim();
-    return { structured: parsed as StructuredAnalysisData, markdown };
-  } catch {
-    return { structured: null, markdown: content };
-  }
-}
-
-// =====================
-// 仪表盘数据解析
+// 仪表盘数据解析（无 ```json``` 围栏时的 legacy 全文 JSON）
 // =====================
 function parseDashboardData(content: string): {
   dashboardData: DashboardData | null;
@@ -334,6 +310,76 @@ function parseDashboardData(content: string): {
   }
 
   return { dashboardData: null, rawContent: content };
+}
+
+// =====================
+// 统一解析：投顾大师 v1 > 旧评分 JSON > 旧仪表盘 > Markdown
+// =====================
+function parseAiAnalysisPayload(content: string): {
+  advisorReport: AdvisorMasterReport | null;
+  dashboardData: DashboardData | null;
+  structuredData: StructuredAnalysisData | null;
+  markdownContent: string;
+} {
+  if (!content) {
+    return { advisorReport: null, dashboardData: null, structuredData: null, markdownContent: '' };
+  }
+  const jsonBlockRegex = /```json\s*([\s\S]*?)```/;
+  const match = content.match(jsonBlockRegex);
+  if (match) {
+    try {
+      let jsonStr = match[1].trim();
+      jsonStr = jsonStr
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']')
+        .replace(/True/g, 'true')
+        .replace(/False/g, 'false');
+      const parsed = JSON.parse(jsonStr);
+      const jsonBlockEnd = content.indexOf(match[0]) + match[0].length;
+      const markdownContent = content.substring(jsonBlockEnd).trim();
+
+      if (parsed.schema_version === 'advisor_master_v1') {
+        return {
+          advisorReport: parsed as AdvisorMasterReport,
+          dashboardData: null,
+          structuredData: null,
+          markdownContent,
+        };
+      }
+      if (typeof parsed.overallScore === 'number' && parsed.recommendation) {
+        return {
+          advisorReport: null,
+          dashboardData: null,
+          structuredData: parsed as StructuredAnalysisData,
+          markdownContent,
+        };
+      }
+      if (
+        typeof parsed.sentiment_score === 'number' &&
+        parsed.dashboard &&
+        typeof parsed.dashboard === 'object'
+      ) {
+        return {
+          advisorReport: null,
+          dashboardData: parsed as DashboardData,
+          structuredData: null,
+          markdownContent,
+        };
+      }
+    } catch {
+      // fall through
+    }
+  }
+  const { dashboardData } = parseDashboardData(content);
+  if (dashboardData) {
+    return {
+      advisorReport: null,
+      dashboardData,
+      structuredData: null,
+      markdownContent: content,
+    };
+  }
+  return { advisorReport: null, dashboardData: null, structuredData: null, markdownContent: content };
 }
 
 // =====================
@@ -424,9 +470,10 @@ function parseContentSections(text: string): ContentSection[] {
 // 构造分析问题（新版带JSON引导）
 // =====================
 const buildAnalysisQuestion = (stockName: string, stockCode: string): string => {
-  return `请对 ${stockName}(${stockCode}) 进行全面深度分析，输出完整的决策仪表盘 JSON。
+  return `请对 ${stockName}(${stockCode}) 进行投顾大师级全面分析。
 
-请基于系统提供的实时行情数据、K线数据、财务数据、新闻资讯等进行分析，严格按照系统提示中要求的 JSON 格式输出。所有评分和价格必须基于实际数据给出合理数值，不要编造不存在的数据。`;
+【输出】必须先输出一个 JSON 代码块，且其中 schema_version 为 advisor_master_v1（字段结构与系统 Prompt 中示例一致），再可选附加 Markdown 补充说明。
+请基于系统提供的实时行情、K线、财务、新闻资讯等数据填写；不得编造未提供的具体数值。`;
 };
 
 // =====================
@@ -517,6 +564,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           content: '',
           structuredData: null,
           dashboardData: null,
+          advisorReport: null,
           markdownContent: '',
           historyResult: null,
           historyRecords: [],
@@ -537,6 +585,8 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
               result: any;
               structured: any;
               markdown: string;
+              dashboardData: DashboardData | null;
+              advisorReport: AdvisorMasterReport | null;
             }>();
             
             // 并行处理当前批次
@@ -544,10 +594,14 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
               try {
                 const result = await GetAIResponseResult(stock.ts_code);
                 if (result && result.content) {
-                  // 先尝试仪表盘解析，再尝试旧格式
-                  const { dashboardData } = parseDashboardData(result.content);
-                  const { structured, markdown } = parseStructuredData(result.content);
-                  batchResults.set(stock.ts_code, { result, structured, markdown, dashboardData });
+                  const parsed = parseAiAnalysisPayload(result.content);
+                  batchResults.set(stock.ts_code, {
+                    result,
+                    structured: parsed.structuredData,
+                    markdown: parsed.markdownContent,
+                    dashboardData: parsed.dashboardData,
+                    advisorReport: parsed.advisorReport,
+                  });
                 }
               } catch {
                 // 忽略单个请求错误
@@ -566,6 +620,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
                     historyResult: batchData.result,
                     structuredData: batchData.structured,
                     dashboardData: batchData.dashboardData,
+                    advisorReport: batchData.advisorReport,
                     markdownContent: batchData.markdown,
                     content: batchData.result.content,
                     updatedAt: batchData.result.CreatedAt
@@ -605,7 +660,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
   useEffect(() => {
     if (selectedStockCode) return;
     const firstWithData = stockAnalysisList.find(
-      s => !s.isAnalyzing && (s.dashboardData || s.structuredData || s.content)
+      s => !s.isAnalyzing && (s.advisorReport || s.dashboardData || s.structuredData || s.content)
     );
     if (firstWithData) {
       setSelectedStockCode(firstWithData.stockCode);
@@ -632,6 +687,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         content: '',
         structuredData: null,
         dashboardData: null,
+        advisorReport: null,
         markdownContent: '',
         historyResult: null,
         historyRecords: [],
@@ -659,14 +715,14 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
       const result = await GetAIResponseResultList(query);
       if (result && result.list && result.list.length > 0) {
         const records: HistoryRecord[] = result.list.map((item: models.AIResponseResult) => {
-          const { dashboardData } = parseDashboardData(item.content);
-          const { structured, markdown } = parseStructuredData(item.content);
+          const parsed = parseAiAnalysisPayload(item.content);
           return {
             id: item.ID,
             content: item.content,
-            dashboardData,
-            structuredData: structured,
-            markdownContent: markdown,
+            dashboardData: parsed.dashboardData,
+            advisorReport: parsed.advisorReport,
+            structuredData: parsed.structuredData,
+            markdownContent: parsed.markdownContent,
             modelName: item.modelName || '',
             createdAt: item.CreatedAt
               ? new Date(item.CreatedAt).toLocaleString('zh-CN')
@@ -716,6 +772,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         content: '',
         structuredData: null,
         dashboardData: null,
+        advisorReport: null,
         markdownContent: '',
         error: '',
         showDetail: false,
@@ -765,17 +822,16 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           analyzingStocksRef.current.delete(stockCode);
 
           const finalContent = contentAccumulator.current;
-          // 先尝试仪表盘解析，再尝试旧格式
-          const { dashboardData: parsedDashboard } = parseDashboardData(finalContent);
-          const { structured, markdown } = parseStructuredData(finalContent);
+          const parsed = parseAiAnalysisPayload(finalContent);
 
           updateStockAnalysis(stockCode, {
             isAnalyzing: false,
             phase: 'completed',
             content: finalContent,
-            dashboardData: parsedDashboard,
-            structuredData: structured,
-            markdownContent: markdown,
+            dashboardData: parsed.dashboardData,
+            advisorReport: parsed.advisorReport,
+            structuredData: parsed.structuredData,
+            markdownContent: parsed.markdownContent,
             updatedAt: new Date().toLocaleString('zh-CN'),
           });
 
@@ -879,6 +935,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         content: '',
         structuredData: null,
         dashboardData: null,
+        advisorReport: null,
         markdownContent: '',
         historyResult: null,
         historyRecords: [],
@@ -921,6 +978,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           content: '',
           structuredData: null,
           dashboardData: null,
+          advisorReport: null,
           markdownContent: '',
           historyResult: null,
           historyRecords: [],
@@ -935,13 +993,13 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           try {
             const result = await GetAIResponseResult(stock.ts_code);
             if (result && result.content) {
-              const { dashboardData } = parseDashboardData(result.content);
-              const { structured, markdown } = parseStructuredData(result.content);
+              const parsed = parseAiAnalysisPayload(result.content);
               updateStockAnalysis(stock.ts_code, {
                 historyResult: result,
-                structuredData: structured,
-                dashboardData: dashboardData,
-                markdownContent: markdown,
+                structuredData: parsed.structuredData,
+                dashboardData: parsed.dashboardData,
+                advisorReport: parsed.advisorReport,
+                markdownContent: parsed.markdownContent,
                 content: result.content,
                 updatedAt: result.CreatedAt
                   ? new Date(result.CreatedAt).toLocaleString('zh-CN')
@@ -1389,14 +1447,24 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
           </div>
         )}
 
+        {/* 投顾大师结构化 */}
+        {!stock.isAnalyzing && stock.advisorReport && (
+          <AdvisorMasterPanel
+            report={stock.advisorReport}
+            stockName={stock.stockName}
+            stockCode={stock.stockCode}
+            updatedAt={stock.updatedAt}
+          />
+        )}
+
         {/* 有仪表盘数据 */}
-        {!stock.isAnalyzing && stock.dashboardData && renderDashboard(stock)}
+        {!stock.isAnalyzing && !stock.advisorReport && stock.dashboardData && renderDashboard(stock)}
 
         {/* 有结构化数据（旧格式） */}
-        {!stock.isAnalyzing && !stock.dashboardData && stock.structuredData && renderStructuredCard(stock)}
+        {!stock.isAnalyzing && !stock.advisorReport && !stock.dashboardData && stock.structuredData && renderStructuredCard(stock)}
 
         {/* 无结构化数据但有内容（Fallback） */}
-        {!stock.isAnalyzing && !stock.dashboardData && !stock.structuredData && stock.content && (
+        {!stock.isAnalyzing && !stock.advisorReport && !stock.dashboardData && !stock.structuredData && stock.content && (
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -1412,7 +1480,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         )}
 
         {/* 空状态 */}
-        {!stock.isAnalyzing && !stock.dashboardData && !stock.content && !stock.error && (
+        {!stock.isAnalyzing && !stock.advisorReport && !stock.dashboardData && !stock.content && !stock.error && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-bold text-white">{stock.stockName}</h3>
@@ -1423,7 +1491,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         )}
 
         {/* 展开详情按钮和重新分析按钮 */}
-        {!stock.isAnalyzing && (stock.content || stock.structuredData || stock.dashboardData) && (
+        {!stock.isAnalyzing && (stock.content || stock.structuredData || stock.dashboardData || stock.advisorReport) && (
           <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-white/5">
             <button
               onClick={() => toggleDetail(stock.stockCode)}
@@ -1453,7 +1521,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
         )}
 
         {/* 空状态时的分析按钮 */}
-        {!stock.isAnalyzing && !stock.dashboardData && !stock.content && !stock.error && (
+        {!stock.isAnalyzing && !stock.advisorReport && !stock.dashboardData && !stock.content && !stock.error && (
           <div className="flex justify-end mt-3">
             <button
               onClick={() => startSingleAnalysis(stock.stockCode, stock.stockName)}
@@ -1481,7 +1549,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
   // 左栏列表数据
   const analyzingStocks = stockAnalysisList.filter(s => s.isAnalyzing);
   const completedStocks = stockAnalysisList
-    .filter(s => !s.isAnalyzing && (s.dashboardData || s.structuredData || s.content))
+    .filter(s => !s.isAnalyzing && (s.advisorReport || s.dashboardData || s.structuredData || s.content))
     .sort((a, b) => {
       if (!a.updatedAt && !b.updatedAt) return 0;
       if (!a.updatedAt) return 1;
@@ -1489,7 +1557,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
       return b.updatedAt.localeCompare(a.updatedAt);
     });
   const idleStocks = stockAnalysisList.filter(
-    s => !s.isAnalyzing && !s.dashboardData && !s.structuredData && !s.content && !s.error
+    s => !s.isAnalyzing && !s.advisorReport && !s.dashboardData && !s.structuredData && !s.content && !s.error
   );
 
   // 按 filterText 过滤
@@ -1509,6 +1577,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
 
   // 获取评分
   const getScore = (s: StockAnalysisState): number | null => {
+    if (s.advisorReport?.sentiment_score != null) return s.advisorReport.sentiment_score;
     if (s.dashboardData?.sentiment_score != null) return s.dashboardData.sentiment_score;
     if (s.structuredData?.overallScore != null) return s.structuredData.overallScore;
     return null;
@@ -1581,6 +1650,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
   const getDisplayData = (stock: StockAnalysisState): {
     content: string;
     dashboardData: DashboardData | null;
+    advisorReport: AdvisorMasterReport | null;
     structuredData: StructuredAnalysisData | null;
     markdownContent: string;
     updatedAt: string;
@@ -1591,6 +1661,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
       return {
         content: record.content,
         dashboardData: record.dashboardData,
+        advisorReport: record.advisorReport,
         structuredData: record.structuredData,
         markdownContent: record.markdownContent,
         updatedAt: record.createdAt,
@@ -1600,6 +1671,7 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
     return {
       content: stock.content,
       dashboardData: stock.dashboardData,
+      advisorReport: stock.advisorReport,
       structuredData: stock.structuredData,
       markdownContent: stock.markdownContent,
       updatedAt: stock.updatedAt,
@@ -1684,10 +1756,37 @@ export function AIAnalysis({ pendingStock, onPendingStockConsumed }: AIAnalysisP
       ...selectedStock,
       content: display.content,
       dashboardData: display.dashboardData,
+      advisorReport: display.advisorReport,
       structuredData: display.structuredData,
       markdownContent: display.markdownContent,
       updatedAt: display.updatedAt,
     };
+
+    // 投顾大师结构化报告
+    if (display.advisorReport) {
+      return (
+        <div className="space-y-4">
+          {renderHistoryPicker(selectedStock)}
+          <AdvisorMasterPanel
+            report={display.advisorReport}
+            stockName={selectedStock.stockName}
+            stockCode={selectedStock.stockCode}
+            updatedAt={display.updatedAt}
+          />
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => startSingleAnalysis(selectedStock.stockCode, selectedStock.stockName)}
+              disabled={hasAnyAnalyzing}
+              className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-sm text-cyan-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className="w-4 h-4" />
+              重新分析
+            </button>
+          </div>
+          {renderLogSection(displayStock)}
+        </div>
+      );
+    }
 
     // 有仪表盘数据
     if (display.dashboardData) {

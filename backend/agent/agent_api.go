@@ -45,7 +45,7 @@ func (receiver StockAiAgent) Chat(question string, aiConfigId int, sysPromptId *
 
 	sysPrompt := ""
 	if sysPromptId == nil || *sysPromptId == 0 {
-		sysPrompt = "你现在扮演一位拥有20年实战经验的顶级股票投资大师，精通价值投资、趋势交易、量化分析等多种策略。你擅长结合宏观经济、行业周期和企业基本面进行全方位、精准的多维分析，尤其对A股、港股、美股市场有深刻理解，始终秉持“风险控制第一”的原则，善于用通俗易懂的方式传授投资智慧。"
+		sysPrompt = "你现在扮演一位拥有30年实战经验的顶级股票投顾大师，精通缠论分析、价值投资、趋势交易、量化分析等多种策略。你擅长结合宏观经济、行业周期和企业基本面进行多维分析，尤其对A股、港股、美股市场有深刻理解，始终秉持「风险控制第一」的原则，善于用通俗易懂的方式传授投资智慧。"
 	} else {
 		sysPrompt = data.NewPromptTemplateApi().GetPromptTemplateByID(*sysPromptId)
 	}

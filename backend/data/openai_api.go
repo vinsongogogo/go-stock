@@ -675,6 +675,11 @@ func (o *OpenAi) NewChatStream(stock, stockCode, userQuestion string, sysPromptI
 			question = strutil.ReplaceWithMap(userQuestion, replaceTemplates)
 		}
 
+		sysPrompt = strutil.ReplaceWithMap(sysPrompt, replaceTemplates)
+		if len(msg) > 0 {
+			msg[0]["content"] = sysPrompt
+		}
+
 		//logger.SugaredLogger.Infof("NewChatStream stock:%s stockCode:%s", stock, stockCode)
 		//logger.SugaredLogger.Infof("Prompt：%s", sysPrompt)
 		//logger.SugaredLogger.Infof("final question:%s", question)

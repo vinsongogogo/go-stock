@@ -6,7 +6,7 @@ import { MarketTicker } from './components/MarketTicker';
 import { Dashboard } from './components/Dashboard';
 import { Watchlist } from './components/Watchlist';
 import { AboutUs } from './components/AboutUs';
-import { MoneyFlow } from './components/MoneyFlow';
+import { MoneyFlow, type MoneyFlowMainTab } from './components/MoneyFlow';
 import { StockFilter } from './components/StockFilter';
 import { Settings } from './components/Settings';
 import { AIAnalysis } from './components/AIAnalysis';
@@ -15,6 +15,7 @@ import { LongTigerRank } from './components/LongTigerRank';
 export default function App() {
   const compactLayout = useCompactLayout();
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'watchlist', 'about', 'moneyflow', 'stockfilter', 'settings', 'aianalysis', 'longtiger'
+  const [moneyFlowTab, setMoneyFlowTab] = useState<MoneyFlowMainTab>('flow');
   const [pendingAnalysisStock, setPendingAnalysisStock] = useState<{ code: string; name: string } | null>(null);
 
   const handleNavigateToAIAnalysis = useCallback((stockCode: string, stockName: string) => {
@@ -51,7 +52,11 @@ export default function App() {
           onDashboardClick={() => setCurrentView('dashboard')}
           onWatchlistClick={() => setCurrentView('watchlist')}
           onAboutClick={() => setCurrentView('about')}
-          onMoneyFlowClick={() => setCurrentView('moneyflow')}
+          onMoneyFlowNavigate={(tab) => {
+            setCurrentView('moneyflow');
+            setMoneyFlowTab(tab);
+          }}
+          moneyFlowTab={moneyFlowTab}
           onStockFilterClick={() => setCurrentView('stockfilter')}
           onSettingsClick={() => setCurrentView('settings')}
           onAIAnalysisClick={() => setCurrentView('aianalysis')}
@@ -78,7 +83,7 @@ export default function App() {
                 {visitedViews.has('about') && <AboutUs />}
               </div>
               <div style={{ display: currentView === 'moneyflow' ? 'block' : 'none' }}>
-                {visitedViews.has('moneyflow') && <MoneyFlow />}
+                {visitedViews.has('moneyflow') && <MoneyFlow activeTab={moneyFlowTab} />}
               </div>
               <div style={{ display: currentView === 'stockfilter' ? 'block' : 'none' }}>
                 {visitedViews.has('stockfilter') && <StockFilter />}
